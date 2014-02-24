@@ -1,7 +1,6 @@
-package us.bleibinha.sprayreactivemongodbexample
+package lt.socialheat.distributor
 
 import scala.concurrent.duration.DurationInt
-
 import akka.actor.Props
 import akka.io.IO
 import akka.pattern.ask

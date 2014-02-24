@@ -1,4 +1,4 @@
-package us.bleibinha.sprayreactivemongodbexample
+package lt.socialheat.distributor
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -7,7 +7,6 @@ import akka.actor.Actor
 import models.Person
 import models.Person.personJsonFormat
 import Mongo.Persons
-import Mongo.SEvents
 import reactivemongo.bson.BSONDocument
 import reactivemongo.core.commands.LastError
 import spray.http.ContentTypes
@@ -18,6 +17,11 @@ import spray.httpx.SprayJsonSupport.sprayJsonMarshaller
 import spray.httpx.SprayJsonSupport.sprayJsonUnmarshaller
 import spray.json.pimpAny
 import spray.routing.HttpService
+import lt.socialheat.distributor.Mongo._
+import lt.socialheat.distributor.models.SEvent
+import spray.routing.Directive.pimpApply
+import spray.routing.directives.DetachMagnet.fromUnit
+import spray.routing.directives.ParamDefMagnet.apply
 
 class MyServiceActor extends Actor with MyService {
   def actorRefFactory = context
@@ -26,7 +30,8 @@ class MyServiceActor extends Actor with MyService {
 
 trait MyService extends HttpService {
 
-  lazy val myRoute =
+  import lt.socialheat.distributor.Mongo
+lazy val myRoute =
     path("person") {
       put {
         putRoute
@@ -41,6 +46,14 @@ trait MyService extends HttpService {
     path("events") {
       get {
         getSEventRoute
+      } ~
+      put {
+        putSEventRoute
+      }
+    } ~
+    path("trigger"){
+      put{
+        putTriggerFB
       }
     }
 
@@ -52,22 +65,38 @@ trait MyService extends HttpService {
         }
       }
     }
+ protected lazy val putSEventRoute =
+    entity(as[SEvent]) { sEvent ⇒
+      detach() {
+        complete {
+          SEvents.add(sEvent)
+        }
+      }
+    }
+  protected lazy val putTriggerFB =
+    entity(as[SEvent]) { person ⇒
+      detach() {
+        complete {
+          SEvents.add(person)
+        }
+      }
+    }
   protected lazy val getSEventRoute =
     parameter('categories ?,			//Filtering 
-        'explicit ? false,
+        'explicit ? false, //skip that shit
         'tags ?,
         'skip ?,
-        'start_date ?,
-        'end_date ?,
-        'location ?, //lat,long,proximity
-        'sort ?,			//distance,start,date,soon,heat
+        'start_time ?,
+        'end_time ?,
+        'location ?, //lat:long:proximity
+        'sort ?,			//soon
         'limit ? 10,
         'offset ? 0
         ) { 
-    (categories, explicit, tags, skip, start_date, end_date, location, sort, limit, offset) =>
+    (categories, explicit, tags, skip, start_time, end_time, location, sort, limit, offset) =>
       detach() {
         complete {
-          SEvents.findAll(categories,
+          /*SEvents.findEvents(categories,
               explicit,
               tags,
               skip,
@@ -76,7 +105,9 @@ trait MyService extends HttpService {
               location,
               sort,
               limit,
-              offset)
+              offset)*/
+          var events = SEvents.findLimitedEvent(categories, tags, start_time, end_time, location, sort, limit, offset)
+          events
         }
       }
   }

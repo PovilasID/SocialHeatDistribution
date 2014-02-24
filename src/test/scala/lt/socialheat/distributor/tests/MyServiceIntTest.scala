@@ -1,6 +1,6 @@
-package us.bleibinha.sprayreactivemongodbexample
+package lt.socialheat.distributor.tests
 
-import scala.concurrent.Await
+/*import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.Future
 
@@ -214,3 +214,4 @@ class MyServiceIntTest
     Await.result(Persons.removeAll(), 5 seconds)
   }
 }
+*/

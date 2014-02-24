@@ -28,7 +28,8 @@ libraryDependencies ++= {
     "io.spray" %%  "spray-json" % "1.2.5",
     "sprest" %% "sprest-reactivemongo" % "0.3.0",
     "org.scalatest" %% "scalatest" % "1.9.2" % "test",
-    "org.mockito" % "mockito-all" % "1.9.5" % "test"
+    "org.mockito" % "mockito-all" % "1.9.5" % "test",
+    "com.pongr" %% "spracebook" % "0.1.0-SNAPSHOT"
   )
 }
 

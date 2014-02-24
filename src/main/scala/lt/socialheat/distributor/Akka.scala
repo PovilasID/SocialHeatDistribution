@@ -1,4 +1,4 @@
-package us.bleibinha.sprayreactivemongodbexample
+package lt.socialheat.distributor
 
 import akka.actor.ActorSystem
 

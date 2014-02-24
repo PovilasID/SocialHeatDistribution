@@ -1,4 +1,4 @@
-package us.bleibinha.sprayreactivemongodbexample.models
+package lt.socialheat.distributor.models
 
 import spray.json.DefaultJsonProtocol.jsonFormat3
 import sprest.models.Model
@@ -11,11 +11,9 @@ case class Home(
 case class Person(
   var id: Option[String] = None,
   name: String,
-  age: Int,
-  home: Option[Home]) extends Model[String]
+  age: Int) extends Model[String]
 
 object Person extends ModelCompanion[Person, String] {
   import sprest.Formats._
-  implicit val homeJsonFormat = jsonFormat2(Home.apply _)
-  implicit val personJsonFormat = jsonFormat4(Person.apply _)
+  implicit val personJsonFormat = jsonFormat3(Person.apply _)
 }
