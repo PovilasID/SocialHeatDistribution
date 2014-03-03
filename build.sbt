@@ -20,16 +20,22 @@ libraryDependencies ++= {
   val sprayV = "1.2.0"
   Seq(
     "io.spray"            %   "spray-can"     % sprayV,
+  	"io.spray" 			  %   "spray-http" 	  % sprayV,
+  	"io.spray" 			  %   "spray-httpx"   % sprayV,
     "io.spray"            %   "spray-routing" % sprayV,
+  	"io.spray"			  %   "spray-util" 	  % sprayV,
     "io.spray"            %   "spray-testkit" % sprayV,
     "com.typesafe.akka"   %%  "akka-actor"    % akkaV,
     "com.typesafe.akka"   %%  "akka-testkit"  % akkaV,
     "org.reactivemongo" %% "reactivemongo" % "0.10.0",
     "io.spray" %%  "spray-json" % "1.2.5",
+    "io.spray"			  %   "spray-client"  % sprayV,
     "sprest" %% "sprest-reactivemongo" % "0.3.0",
+    "org.scala-lang" % "scala-actors" % "2.10.0-M6",
     "org.scalatest" %% "scalatest" % "1.9.2" % "test",
     "org.mockito" % "mockito-all" % "1.9.5" % "test",
-    "com.pongr" %% "spracebook" % "0.1.0-SNAPSHOT"
+    "ch.qos.logback" % "logback-classic" % "1.0.13",
+    "com.typesafe.akka" % "akka-slf4j_2.10" % "2.2.3"
   )
 }
 

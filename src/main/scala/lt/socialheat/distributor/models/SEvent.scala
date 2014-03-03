@@ -1,12 +1,11 @@
 package lt.socialheat.distributor.models
 
-import spray.json.DefaultJsonProtocol.jsonFormat3
 import sprest.models.Model
 import sprest.models.ModelCompanion
-import sprest.reactivemongo.typemappers.jsObjectBSONDocumentWriter
-import reactivemongo.bson.Macros
-import org.joda.time.DateTime
-
+import spray.httpx.unmarshalling.{Unmarshaller}
+import spray.util._
+import spray.http._
+  
 case class GeoJson(
     `type`: 		Option[String], //Prepear 
     coordinates:	Option[/*Either[*/List[Double]/*,List[List[Double]]]*/],
@@ -45,13 +44,23 @@ case class SEvent(
 
 //@ TODO Add media: images, videos, links etc...
 
+/*object fbUnmarshaling{
+  val `application/vnd.acme.person` =
+  MediaTypes.register(MediaType.custom("application/vnd.acme.person"))
 
+  implicit val SimplerPersonUnmarshaller =
+  	Unmarshaller.delegate[String, Person](`application/json`) { string =>
+  		val Array(_, name, first, age) = string.split(":,".toCharArray).map(_.trim)
+  	SEvent(name, first, age.toInt)
+  }
+}*/
 object SEvent extends ModelCompanion[SEvent, String] {
   import sprest.Formats._
   implicit val geoJsonJsonFormat = jsonFormat3(GeoJson.apply _)
   implicit val sVHoursJsonFormat = jsonFormat2(SVHours.apply _)
   implicit val sVenueJsonFormat = jsonFormat8(SVenue.apply _) 
   implicit val sEventJsonFormat = jsonFormat18(SEvent.apply _)
+  
   
   /*implicit val geoJsonHandler = Macros.handler[GeoJson]
   implicit val sVHoursHandler = Macros.handler[SVHours]

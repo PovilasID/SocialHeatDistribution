@@ -2,7 +2,6 @@ package lt.socialheat.distributor
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-
 import akka.actor.Actor
 import models.Person
 import models.Person.personJsonFormat
@@ -22,6 +21,7 @@ import lt.socialheat.distributor.models.SEvent
 import spray.routing.Directive.pimpApply
 import spray.routing.directives.DetachMagnet.fromUnit
 import spray.routing.directives.ParamDefMagnet.apply
+
 
 class MyServiceActor extends Actor with MyService {
   def actorRefFactory = context
@@ -52,8 +52,8 @@ lazy val myRoute =
       }
     } ~
     path("trigger"){
-      put{
-        putTriggerFB
+      get{
+        getTriggerFB
       }
     }
 
@@ -73,14 +73,14 @@ lazy val myRoute =
         }
       }
     }
-  protected lazy val putTriggerFB =
-    entity(as[SEvent]) { person ⇒
+ import Akka.actorSystem
+  protected lazy val getTriggerFB =
       detach() {
         complete {
-          SEvents.add(person)
+          //val fbData = FbGet
+          "Succes"
         }
       }
-    }
   protected lazy val getSEventRoute =
     parameter('categories ?,			//Filtering 
         'explicit ? false, //skip that shit

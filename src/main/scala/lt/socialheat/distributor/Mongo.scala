@@ -14,9 +14,8 @@ import reactivemongo.api.QueryOpts
 import reactivemongo.core.commands._
 import reactivemongo.api.QueryOpts
 import reactivemongo.bson.BSONArray
-import Akka.actorSystem
-import reactivemongo.bson.Producer.nameValue2Producer
-import reactivemongo.bson.Producer.valueProducer
+import akka.event.Logging
+
 
 
 trait Mongo extends ReactiveMongoPersistence {
@@ -41,43 +40,15 @@ trait Mongo extends ReactiveMongoPersistence {
     override def remove(selector: Selector)(implicit ec: ExecutionContext) = uncheckedRemoveById(selector.id)
 
     protected val collection = db(collName)
-    /*val command = Count(collName, Some(BSONDocument("tag"->"cloed")))
-    db.command(command)*/
+    
     def findLimitedEvents()(implicit ec: ExecutionContext) = collection.find(BSONDocument.empty)/*.sort(BSONDocument("heat" -> -1))*/.query(BSONDocument("tags" -> "lazy")).options(QueryOpts().batchSize(10)).cursor.collect[List](10, true)
     
-    /*def pullEventsFB ()(implicit ec: ExecutionContext) = {
-      implicit val system = ActorSystem("simple-spray-client")
-	  import system.dispatcher // execution context for futures below
+	  implicit val system = actorSystem
+	  import system.dispatcher // execution context for futures
 	  val log = Logging(system, getClass)
-	
-	  log.info("Requesting the elevation of Mt. Everest from Googles Elevation API...")
-	
-	  import ElevationJsonProtocol._
-	  import SprayJsonSupport._
-	  val pipeline = sendReceive ~> unmarshal[GoogleApiResult[Elevation]]
-	
-	  val responseFuture = pipeline {
-	    Get("http://maps.googleapis.com/maps/api/elevation/json?locations=27.988056,86.925278&sensor=false")
-	  }
-	  responseFuture onComplete {
-	    case Success(GoogleApiResult(_, Elevation(_, elevation) :: _)) =>
-	      log.info("The elevation of Mt. Everest is: {} m", elevation)
-	      shutdown()
-	
-	    case Success(somethingUnexpected) =>
-	      log.warning("The Google API call was successful but returned something unexpected: '{}'.", somethingUnexpected)
-	      shutdown()
-	
-	    case Failure(error) =>
-	      log.error(error, "Couldn't get elevation")
-	      shutdown()
-	  }
-	
-	  def shutdown(): Unit = {
-	    IO(Http).ask(Http.CloseAll)(1.second).await
-	    system.shutdown()
-	  }
-    }*/
+    def pullEventsFB (args: Array[String])(implicit ec: ExecutionContext) = {
+
+    }
     
     def findLimitedEvent(
         categories: Option[String],
