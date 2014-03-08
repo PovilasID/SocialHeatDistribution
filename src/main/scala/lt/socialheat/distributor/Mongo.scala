@@ -77,6 +77,7 @@ trait Mongo extends ReactiveMongoPersistence {
     def findLimitedEvent(
         categories: Option[String],
         tags: Option[String],
+        skip: Option[String],
         start_time: Option[String],
         end_time: Option[String],
         location: Option[String],
@@ -89,7 +90,7 @@ trait Mongo extends ReactiveMongoPersistence {
       location match {
         case Some(location) => {
           val locationSplit = location.split(":")
-          val maxDist = locationSplit(2) match {case dist if !dist.isEmpty() => dist.toDouble case _ => 0}
+          val maxDist = locationSplit match {case dist if locationSplit.length > 2 => dist(2).toDouble case _ => 0}
           parameters = parameters add BSONDocument(
         		"$geoNear" -> BSONDocument(
                     "near" -> BSONArray(locationSplit(0).toDouble,locationSplit(1).toDouble),

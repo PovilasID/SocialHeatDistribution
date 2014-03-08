@@ -5,8 +5,8 @@ import sprest.models.ModelCompanion
 import spray.httpx.unmarshalling.{Unmarshaller}
 import spray.util._
 import spray.http._
-import reactivemongo.bson.BSONObjectID
-  
+import org.joda.time.DateTime
+
 case class GeoJson(
     `type`: 		Option[String], //Prepear 
     coordinates:	Option[/*Either[*/List[Double]/*,List[List[Double]]]*/],
@@ -29,8 +29,8 @@ case class SEvent(
     title: 		Option[String],
     desc: 		Option[String],
     cover:		Option[String],
-    start_time:	Option[String], //@ TODO Change to date if increase performance
-    end_time:	Option[String],
+    start_time:	Option[DateTime], //@ TODO Change to date if increase performance
+    end_time:	Option[DateTime],
     categories:	Option[List[String]],
     tags:		Option[List[String]],
     heat:		Option[Int],
