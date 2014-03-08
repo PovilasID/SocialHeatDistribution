@@ -4,7 +4,6 @@
   <classpathentry kind="src" path="src/test/scala" output="target/scala-2.10/test-classes"/>
   <classpathentry kind="src" path="src/test/java" output="target/scala-2.10/test-classes"/>
   <classpathentry kind="con" path="org.scala-ide.sdt.launching.SCALA_CONTAINER"/>
-  <classpathentry kind="lib" path="/home/povilas/.ivy2/cache/io.spray/spray-client/bundles/spray-client-1.2.0.jar"/>
   <classpathentry kind="lib" path="/home/povilas/.ivy2/cache/io.spray/spray-can/bundles/spray-can-1.2.0.jar"/>
   <classpathentry kind="lib" path="/home/povilas/.ivy2/cache/io.spray/spray-io/bundles/spray-io-1.2.0.jar"/>
   <classpathentry kind="lib" path="/home/povilas/.ivy2/cache/io.spray/spray-util/bundles/spray-util-1.2.0.jar"/>
@@ -29,6 +28,7 @@
   <classpathentry kind="lib" path="/home/povilas/.ivy2/cache/org.apache.logging.log4j/log4j-api/jars/log4j-api-2.0-beta9.jar"/>
   <classpathentry kind="lib" path="/home/povilas/.ivy2/cache/org.apache.logging.log4j/log4j-core/jars/log4j-core-2.0-beta9.jar"/>
   <classpathentry kind="lib" path="/home/povilas/.ivy2/cache/io.spray/spray-json_2.10/jars/spray-json_2.10-1.2.5.jar"/>
+  <classpathentry kind="lib" path="/home/povilas/.ivy2/cache/io.spray/spray-client/bundles/spray-client-1.2.0.jar"/>
   <classpathentry kind="lib" path="/home/povilas/.ivy2/cache/sprest/sprest-reactivemongo_2.10/jars/sprest-reactivemongo_2.10-0.3.0.jar"/>
   <classpathentry kind="lib" path="/home/povilas/.ivy2/cache/sprest/sprest-core_2.10/jars/sprest-core_2.10-0.3.0.jar"/>
   <classpathentry kind="lib" path="/home/povilas/.ivy2/cache/ch.qos.logback/logback-classic/jars/logback-classic-1.0.13.jar"/>
@@ -36,6 +36,7 @@
   <classpathentry kind="lib" path="/home/povilas/.ivy2/cache/org.slf4j/slf4j-api/jars/slf4j-api-1.7.5.jar"/>
   <classpathentry kind="lib" path="/home/povilas/.ivy2/cache/joda-time/joda-time/jars/joda-time-2.3.jar"/>
   <classpathentry kind="lib" path="/home/povilas/.ivy2/cache/org.joda/joda-convert/jars/joda-convert-1.5.jar"/>
+  <classpathentry kind="lib" path="/home/povilas/.ivy2/cache/org.scala-lang/scala-actors/jars/scala-actors-2.10.0-M6.jar"/>
   <classpathentry kind="lib" path="/home/povilas/.ivy2/cache/com.typesafe.akka/akka-slf4j_2.10/bundles/akka-slf4j_2.10-2.2.3.jar"/>
   <classpathentry kind="lib" path="/home/povilas/.ivy2/cache/org.scalatest/scalatest_2.10/jars/scalatest_2.10-1.9.2.jar"/>
   <classpathentry kind="lib" path="/home/povilas/.ivy2/cache/org.mockito/mockito-all/jars/mockito-all-1.9.5.jar"/>

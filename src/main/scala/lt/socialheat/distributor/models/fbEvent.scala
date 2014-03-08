@@ -18,7 +18,7 @@ case class fbEVenue(
     zip:			Option[String]){}
 
 case class fbEven (
-    eid:				Option[Int],
+    eid:				Option[Long],
     name:				Option[String],
     host:				Option[String],
     creator:			Option[Int],
@@ -46,5 +46,5 @@ object fbEventJsonProtocol extends DefaultJsonProtocol {
   implicit val coverFormat = jsonFormat2(fbECover)
   implicit val venueFormat = jsonFormat8(fbEVenue)
   implicit val eventFormat = jsonFormat20(fbEven)
-  implicit def fbgoogleApiDataFormat[T :JsonFormat] = jsonFormat1(fbApiData.apply[T])
+  implicit def fbApiDataFormat[T :JsonFormat] = jsonFormat1(fbApiData.apply[T])
 }

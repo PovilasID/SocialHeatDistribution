@@ -5,6 +5,7 @@ import sprest.models.ModelCompanion
 import spray.httpx.unmarshalling.{Unmarshaller}
 import spray.util._
 import spray.http._
+import reactivemongo.bson.BSONObjectID
   
 case class GeoJson(
     `type`: 		Option[String], //Prepear 
@@ -23,7 +24,7 @@ case class SVenue(
     zip:			Option[String],
     working_hours:	Option[SVHours])
 case class SEvent(
-    var id: Option[String] = None,
+    var id: 	Option[String] = None,
     nid: 		Option[Int],
     title: 		Option[String],
     desc: 		Option[String],

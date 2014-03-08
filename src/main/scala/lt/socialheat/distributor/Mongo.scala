@@ -15,6 +15,13 @@ import reactivemongo.core.commands._
 import reactivemongo.api.QueryOpts
 import reactivemongo.bson.BSONArray
 import akka.event.Logging
+import lt.socialheat.distributor.models.SEvent
+import spray.json.JsonFormat
+import sprest.reactivemongo.typemappers.BSONTypeMapper
+import spray.json.JsObject
+import spray.json.JsNumber
+import spray.json.JsString
+import reactivemongo.bson.BSONObjectID
 
 
 
@@ -29,8 +36,25 @@ trait Mongo extends ReactiveMongoPersistence {
   // mapped to "id" in JSON in all cases
   implicit object JsonTypeMapper extends SprayJsonTypeMapper with NormalizedIdTransformer
 
+
   abstract class UnsecuredDAO[M <: sprest.models.Model[String]](collName: String)(implicit jsformat: RootJsonFormat[M])
       extends CollectionDAO[M, String](db(collName)) {
+    
+    /*
+     * abstract class CollectionDAO[M <: Model[ID], ID]
+     * (protected val collection: BSONCollection)
+     * (implicit jsonFormat: RootJsonFormat[M], 
+     * jsonMapper: SprayJsonTypeMapper, 
+     * idMapper: BSONTypeMapper[ID])
+     * extends DAO[M, ID] with BsonProtocol with Logging {
+
++  abstract class CollectionDAO[M <: Model[ID], ID : JsonFormat]
++    (protected val collection: BSONCollection)
++    (implicit jsonFormat: RootJsonFormat[M],
++      jsonMapper: SprayJsonTypeMapper,
++      idMapper: BSONTypeMapper[ID])
++      extends DAO[M, ID] with BsonProtocol with Logging {
+     */
 
     case class Selector(id: String) extends UniqueSelector[M, String]
 
@@ -133,8 +157,8 @@ trait Mongo extends ReactiveMongoPersistence {
         BSONDocument(
             "aggregate" -> collName,
             "pipeline" -> parameters
-                ))).map { doc => doc.getAs[List[M]]("result")
-            }
+        ))
+      ).map { doc => doc.getAs[List[M]]("result") }
       data
     }
     def removeAll()(implicit ec: ExecutionContext) = collection.remove(BSONDocument.empty)
@@ -143,7 +167,7 @@ trait Mongo extends ReactiveMongoPersistence {
 
   // MongoDB collections:
   import models._
-  object Persons extends UnsecuredDAO[Person]("persons") with UUIDStringId {
+  object Persons extends UnsecuredDAO[Person]("person") with UUIDStringId {
     def findByName(name: String)(implicit ec: ExecutionContext) = find(BSONDocument("name" → name))
     def findByAge(age: Int)(implicit ec: ExecutionContext) = find(BSONDocument("age" → age))
   }

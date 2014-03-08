@@ -5,7 +5,7 @@ import scala.concurrent.Future
 import akka.actor.Actor
 import models.Person
 import models.Person.personJsonFormat
-import Mongo.Persons
+//import Mongo.Persons
 import reactivemongo.bson.BSONDocument
 import reactivemongo.core.commands.LastError
 import spray.http.ContentTypes
@@ -61,7 +61,8 @@ lazy val myRoute =
     entity(as[Person]) { person ⇒
       detach() {
         complete {
-          Persons.add(person)
+          //Persons.add(person)
+          "Success"
         }
       }
     }
@@ -117,15 +118,15 @@ lazy val myRoute =
     parameters('id.as[String]) { id ⇒
       detach() {
         complete {
-          val person = Persons.findById(id)
+          val person = Some() //Persons.findById(id)
           person map { person ⇒
             person match {
-              case Some(person) ⇒
+              /*case Some(person) ⇒
                 HttpResponse(
                   StatusCodes.OK,
                   HttpEntity(ContentTypes.`application/json`, person.toJson.prettyPrint)
-                )
-              case None ⇒
+                )*/
+              case _ ⇒
                 HttpResponse(StatusCodes.BadRequest)
             }
           }
@@ -135,27 +136,30 @@ lazy val myRoute =
       parameters('name.as[String]) { name ⇒
         detach() {
           complete {
-            Persons.findByName(name)
+            //Persons.findByName(name)
+            "Success"
           }
         }
       } ~
       parameters('age.as[Int]) { age ⇒
         detach() {
           complete {
-            Persons.findByAge(age)
+            //Persons.findByAge(age)
+            "Success"
           }
         }
       } ~
       detach() {
         complete {
-          Persons.findAll()
+          //Persons.findAll()
+          "Success"
         }
       }
 
   protected lazy val deleteRoute =
     detach() {
       dynamic {
-        Persons.removeAll()
+        //Persons.removeAll()
         complete(StatusCodes.OK)
       }
     }
