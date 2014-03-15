@@ -29,8 +29,8 @@
   <classpathentry kind="lib" path="/home/povilas/.ivy2/cache/org.apache.logging.log4j/log4j-core/jars/log4j-core-2.0-beta9.jar"/>
   <classpathentry kind="lib" path="/home/povilas/.ivy2/cache/io.spray/spray-json_2.10/jars/spray-json_2.10-1.2.5.jar"/>
   <classpathentry kind="lib" path="/home/povilas/.ivy2/cache/io.spray/spray-client/bundles/spray-client-1.2.0.jar"/>
-  <classpathentry kind="lib" path="/home/povilas/.ivy2/cache/sprest/sprest-reactivemongo_2.10/jars/sprest-reactivemongo_2.10-0.3.0.jar"/>
-  <classpathentry kind="lib" path="/home/povilas/.ivy2/cache/sprest/sprest-core_2.10/jars/sprest-core_2.10-0.3.0.jar"/>
+  <classpathentry kind="lib" path="/home/povilas/.ivy2/cache/sprest/sprest-reactivemongo_2.10/jars/sprest-reactivemongo_2.10-0.3.2.jar"/>
+  <classpathentry kind="lib" path="/home/povilas/.ivy2/cache/sprest/sprest-core_2.10/jars/sprest-core_2.10-0.3.2.jar"/>
   <classpathentry kind="lib" path="/home/povilas/.ivy2/cache/ch.qos.logback/logback-classic/jars/logback-classic-1.0.13.jar"/>
   <classpathentry kind="lib" path="/home/povilas/.ivy2/cache/ch.qos.logback/logback-core/jars/logback-core-1.0.13.jar"/>
   <classpathentry kind="lib" path="/home/povilas/.ivy2/cache/org.slf4j/slf4j-api/jars/slf4j-api-1.7.5.jar"/>

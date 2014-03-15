@@ -7,54 +7,48 @@ import reactivemongo.bson.BSONDocument
 import spray.json.RootJsonFormat
 import sprest.models.UniqueSelector
 import sprest.models.UUIDStringId
-import sprest.reactivemongo.ReactiveMongoPersistence
-import sprest.reactivemongo.typemappers.NormalizedIdTransformer
-import sprest.reactivemongo.typemappers.SprayJsonTypeMapper
-import reactivemongo.api.QueryOpts
-import reactivemongo.core.commands._
+import reactivemongo.core.commands.RawCommand
 import reactivemongo.api.QueryOpts
 import reactivemongo.bson.BSONArray
 import akka.event.Logging
-import lt.socialheat.distributor.models.SEvent
+import models.SEvent
 import spray.json.JsonFormat
 import sprest.reactivemongo.typemappers.BSONTypeMapper
 import spray.json.JsObject
 import spray.json.JsNumber
 import spray.json.JsString
 import reactivemongo.bson.BSONObjectID
-
-
+import reactivemongo.core.nodeset.Authenticate
+import sprest.reactivemongo.ReactiveMongoPersistence
+import sprest.reactivemongo.typemappers.SprayJsonTypeMapper
+import sprest.reactivemongo.typemappers.NormalizedIdTransformer
+import spray.json.RootJsonFormat
+import sprest.Formats._
+import scala.actors.Future
+import reactivemongo.core.commands.LastError
+import reactivemongo.core.commands.GetLastError
+import scala.util.Success
+import scala.util.Failure
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
 trait Mongo extends ReactiveMongoPersistence {
   import Akka.actorSystem
 
   private val driver = new MongoDriver(actorSystem)
-  private val connection = driver.connection(List("localhost"))
+  private val dbName = "sprayreactivemongodbexample"
+  private val userName = "dev-server"
+  private val password = "serverpants"
+  private val credentials = Seq(Authenticate(dbName, userName, password))
+  private val connection = driver.connection(List("localhost"), credentials)
   private val db = connection("sprayreactivemongodbexample")
 
   // Json mapping to / from BSON - in this case we want "_id" from BSON to be
   // mapped to "id" in JSON in all cases
   implicit object JsonTypeMapper extends SprayJsonTypeMapper with NormalizedIdTransformer
 
-
-  abstract class UnsecuredDAO[M <: sprest.models.Model[String]](collName: String)(implicit jsformat: RootJsonFormat[M])
-      extends CollectionDAO[M, String](db(collName)) {
-    
-    /*
-     * abstract class CollectionDAO[M <: Model[ID], ID]
-     * (protected val collection: BSONCollection)
-     * (implicit jsonFormat: RootJsonFormat[M], 
-     * jsonMapper: SprayJsonTypeMapper, 
-     * idMapper: BSONTypeMapper[ID])
-     * extends DAO[M, ID] with BsonProtocol with Logging {
-
-+  abstract class CollectionDAO[M <: Model[ID], ID : JsonFormat]
-+    (protected val collection: BSONCollection)
-+    (implicit jsonFormat: RootJsonFormat[M],
-+      jsonMapper: SprayJsonTypeMapper,
-+      idMapper: BSONTypeMapper[ID])
-+      extends DAO[M, ID] with BsonProtocol with Logging {
-     */
+  abstract class UnsecuredDAO[M <: sprest.models.Model[String]](collName: String)(implicit jsformat: RootJsonFormat[M]) 
+  extends CollectionDAO[M, String](db(collName)) {
 
     case class Selector(id: String) extends UniqueSelector[M, String]
 
@@ -62,8 +56,8 @@ trait Mongo extends ReactiveMongoPersistence {
     override protected def addImpl(m: M)(implicit ec: ExecutionContext) = doAdd(m)
     override protected def updateImpl(m: M)(implicit ec: ExecutionContext) = doUpdate(m)
     override def remove(selector: Selector)(implicit ec: ExecutionContext) = uncheckedRemoveById(selector.id)
-
-    protected val collection = db(collName)
+    
+    override protected val collection = db(collName)
     
     def findLimitedEvents()(implicit ec: ExecutionContext) = collection.find(BSONDocument.empty)/*.sort(BSONDocument("heat" -> -1))*/.query(BSONDocument("tags" -> "lazy")).options(QueryOpts().batchSize(10)).cursor.collect[List](10, true)
     
@@ -71,7 +65,7 @@ trait Mongo extends ReactiveMongoPersistence {
 	  import system.dispatcher // execution context for futures
 	  val log = Logging(system, getClass)
     def pullEventsFB (args: Array[String])(implicit ec: ExecutionContext) = {
-
+    	
     }
     
     def findLimitedEvent(
@@ -87,6 +81,7 @@ trait Mongo extends ReactiveMongoPersistence {
       var parameters = BSONArray()
       var matchPrams = BSONArray()
       var sortPrams = BSONDocument()
+      //db.events.ensureIndex({"location.coordinates": "2dsphere"})
       location match {
         case Some(location) => {
           val locationSplit = location.split(":")
@@ -101,11 +96,11 @@ trait Mongo extends ReactiveMongoPersistence {
         }
         case None => None
       }
-      val startDateFormated = "ISODate(\""+start_time+"\")"
+      //val startDateFormated = "ISODate(\""+start_time+"\")"
       start_time match {
       	case Some(start_time) => 
       		  matchPrams = matchPrams add BSONDocument("start" ->
-      				  BSONDocument("$gte" -> startDateFormated)) 
+      				  BSONDocument("$gte" -> start_time)) 
       	case None => None
       }
       val endDateFormated = "ISODate(\""+end_time+"\")"
@@ -160,7 +155,17 @@ trait Mongo extends ReactiveMongoPersistence {
             "pipeline" -> parameters
         ))
       ).map { doc => doc.getAs[List[M]]("result") }
+      
       data
+    }
+    def fbIsDuplicate(eid:String)(implicit ec: ExecutionContext): Boolean = {
+      var check:Boolean = false
+      val result = find(BSONDocument("facebook" -> eid))
+      result onComplete{
+        case Success(post) => check = true
+        case Failure(f) => check = false
+      }
+      check
     }
     def removeAll()(implicit ec: ExecutionContext) = collection.remove(BSONDocument.empty)
     def findAll()(implicit ec: ExecutionContext) = find(BSONDocument.empty)
@@ -186,6 +191,7 @@ trait Mongo extends ReactiveMongoPersistence {
       val data = db.command(RawCommand(BSONDocument.empty))
       data
     }
+
   }
 }
 object Mongo extends Mongo

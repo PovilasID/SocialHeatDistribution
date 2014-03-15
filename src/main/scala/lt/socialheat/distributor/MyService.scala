@@ -5,7 +5,6 @@ import scala.concurrent.Future
 import akka.actor.Actor
 import models.Person
 import models.Person.personJsonFormat
-//import Mongo.Persons
 import reactivemongo.bson.BSONDocument
 import reactivemongo.core.commands.LastError
 import spray.http.ContentTypes
@@ -16,11 +15,11 @@ import spray.httpx.SprayJsonSupport.sprayJsonMarshaller
 import spray.httpx.SprayJsonSupport.sprayJsonUnmarshaller
 import spray.json.pimpAny
 import spray.routing.HttpService
-import lt.socialheat.distributor.Mongo._
-import lt.socialheat.distributor.models.SEvent
 import spray.routing.Directive.pimpApply
 import spray.routing.directives.DetachMagnet.fromUnit
 import spray.routing.directives.ParamDefMagnet.apply
+import Mongo.SEvents
+import models.SEvent
 
 
 class MyServiceActor extends Actor with MyService {
@@ -30,7 +29,6 @@ class MyServiceActor extends Actor with MyService {
 
 trait MyService extends HttpService {
 
-  import lt.socialheat.distributor.Mongo
 lazy val myRoute =
     path("person") {
       put {
@@ -108,6 +106,7 @@ lazy val myRoute =
               sort,
               limit,
               offset)*/
+          
           var events = SEvents.findLimitedEvent(categories, tags, skip, start_time, end_time, location, sort, limit, offset)
           events
         }

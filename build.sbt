@@ -30,7 +30,7 @@ libraryDependencies ++= {
     "org.reactivemongo" %% "reactivemongo" % "0.10.0",
     "io.spray" %%  "spray-json" % "1.2.5",
     "io.spray"			  %   "spray-client"  % sprayV,
-    "sprest" %% "sprest-reactivemongo" % "0.3.0",
+    "sprest" %% "sprest-reactivemongo" % "0.3.2",
     "org.scala-lang" % "scala-actors" % "2.10.0-M6",
     "org.scalatest" %% "scalatest" % "1.9.2" % "test",
     "org.mockito" % "mockito-all" % "1.9.5" % "test",
