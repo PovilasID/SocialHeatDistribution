@@ -68,36 +68,10 @@ object FbGet extends App {
       val db = connection("sprayreactivemongodbexample")
       val collection = db("events")
       for(fbEvent <- fbData){
-        //val cover:Option[fbECover] = fbEvent.pic_cover
-      val update = BSONDocument(
-          "$set" -> BSONDocument(
-              "title" -> fbEvent.name,
-              "desc" -> fbEvent.description,
-              "facebook"-> fbEvent.eid.get.toString(),
-              /*"cover" -> {
-                cover match { 
-                  case Some(coverData) => coverData.source
-                  case None => None}
-                },*/
-              "start_time" -> fbEvent.start_time,
-              "end_time" -> fbEvent.end_time,
-              "venue" -> BSONArray(BSONDocument(
-                  "title" -> fbEvent.location,
-                  "country" -> fbEvent.venue.get.country, //@ TODO Turn to iso codes
-                  "city" -> fbEvent.venue.get.city,
-                  "street" -> fbEvent.venue.get.street)),
-              "location" ->  BSONDocument(
-                  "type"->"Point",
-                  "coordinates" -> BSONArray(
-                      fbEvent.venue.get.latitude,
-                      fbEvent.venue.get.longitude))
-               ))
-      val querie = JsObject(/*"facebook"-> JsString(fbEvent.eid.get.toString())*/)
       val fields = JsObject("title" -> JsString(fbEvent.name.get))
-      val duplicate = SEvents.fbIsDuplicate(fbEvent.eid.get.toString())
-      duplicate match {
-        //SEvents.updateWhere(JsObject("facebook" -> JsString(fbEvent.eid.get.toString())), fields)
-        case false => {
+      SEvents.bindByFbID(fbEvent.eid.get.toString()) onComplete {
+        //@ TODO fix upsert
+        case Success(databseOnline) if databseOnline == Nil => {
           val geo = GeoJson(
                 Some("Point"), Some(List(
                     fbEvent.venue.get.latitude, fbEvent.venue.get.longitude)
@@ -112,7 +86,7 @@ object FbGet extends App {
 	          SEvents.add(
 	              SEvent(
 	                  title = fbEvent.name, 
-	                  nid = Some(Random.nextInt()),
+	                  nid = Some(Random.nextInt(Integer.MAX_VALUE)),
 	                  desc = fbEvent.description,
 	                  cover = fbEvent.pic_cover.get.source,
 	                  start_time = Some(
@@ -128,9 +102,8 @@ object FbGet extends App {
 	              )
 	            )
             }
-        case true => None
+        case Failure(fixDatabase) => None
       }
-      //collection.update(BSONDocument("facebook"-> fbEvent.eid.get.toString()), update, GetLastError(), true)
       log.info("Titile of event is: "+ fbEvent.name.get)
       }
       shutdown()

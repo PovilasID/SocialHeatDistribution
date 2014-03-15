@@ -96,18 +96,16 @@ trait Mongo extends ReactiveMongoPersistence {
         }
         case None => None
       }
-      //val startDateFormated = "ISODate(\""+start_time+"\")"
       start_time match {
       	case Some(start_time) => 
       		  matchPrams = matchPrams add BSONDocument("start" ->
       				  BSONDocument("$gte" -> start_time)) 
       	case None => None
       }
-      val endDateFormated = "ISODate(\""+end_time+"\")"
       end_time match {
       	case Some(end_time) => 
       		  matchPrams = matchPrams add BSONDocument("end" ->
-      				  BSONDocument("$lt" -> endDateFormated))
+      				  BSONDocument("$lt" -> end_time))
       	case None => None
       }
       categories match {
@@ -158,15 +156,8 @@ trait Mongo extends ReactiveMongoPersistence {
       
       data
     }
-    def fbIsDuplicate(eid:String)(implicit ec: ExecutionContext): Boolean = {
-      var check:Boolean = false
-      val result = find(BSONDocument("facebook" -> eid))
-      result onComplete{
-        case Success(post) => check = true
-        case Failure(f) => check = false
-      }
-      check
-    }
+    def bindByFbID(eid:String)(implicit ec: ExecutionContext)= 
+      find(BSONDocument("facebook" -> eid))
     def removeAll()(implicit ec: ExecutionContext) = collection.remove(BSONDocument.empty)
     def findAll()(implicit ec: ExecutionContext) = find(BSONDocument.empty)
   }
