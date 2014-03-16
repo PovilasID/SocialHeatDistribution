@@ -70,6 +70,8 @@ trait Mongo extends ReactiveMongoPersistence {
     
     def findLimitedEvent(
         categories: Option[String],
+        explicit: Option[Boolean],
+        explicitVenues: Option[Boolean],
         tags: Option[String],
         skip: Option[String],
         start_time: Option[Int],
@@ -96,6 +98,7 @@ trait Mongo extends ReactiveMongoPersistence {
         }
         case None => None
       }
+
       start_time match {
       	case Some(start_time) => 
       		  matchPrams = matchPrams add BSONDocument("start_time" ->
@@ -118,9 +121,24 @@ trait Mongo extends ReactiveMongoPersistence {
         									BSONDocument("$in" ->tags.split(",")))
         case None => None
       }
-      (categories, tags, start_time, end_time) match {
-        case (categories, tags, start_time, end_time) 
-        	if (categories.isDefined || tags.isDefined || start_time.isDefined || end_time.isDefined) => 
+      explicit match {
+        case Some(explicit) if explicit == false => 
+          matchPrams = matchPrams add BSONDocument("explicit" -> false)
+        case Some(explicit) if explicit == true => 
+          matchPrams = matchPrams add BSONDocument("explicit" -> 
+          	BSONDocument("$in" -> BSONArray(true, false)))
+        case _ => None
+      }
+      explicitVenues match {
+        case Some(explicitVenue) if explicitVenue == false => 
+          matchPrams = matchPrams add BSONDocument("venues.explicit" -> 
+          	BSONDocument("$in" -> BSONArray(false)))
+        case Some(explicitVenue) if explicitVenue == true => None
+        case _ => None
+      }
+      (categories, tags, start_time, end_time, explicit, explicitVenues) match {
+        case (categories, tags, start_time, end_time, explicit, explicitVenues) 
+        	if (categories.isDefined || tags.isDefined || start_time.isDefined || end_time.isDefined || explicit.isDefined || explicitVenues.isDefined) => 
         	  parameters = parameters add BSONDocument(
         			"$match" ->  
       					BSONDocument("$and" -> matchPrams))

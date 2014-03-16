@@ -76,7 +76,7 @@ object FbGet extends App {
       val fields = JsObject("title" -> JsString(fbEvent.name.get))
       SEvents.bindByFbID(fbEvent.eid.get.toString()) onComplete {
         //@ TODO fix upsert
-        case Success(databseOnline) if databseOnline == Nil => {
+        case Success(databseOnline)  => {
           val geo = GeoJson(
                 Some("Point"), Some(List(
                     fbEvent.venue.get.latitude, fbEvent.venue.get.longitude)
@@ -88,26 +88,36 @@ object FbGet extends App {
               street = fbEvent.venue.get.street,
               zip = fbEvent.venue.get.zip)
           val df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
-	          SEvents.add(
-	              SEvent(
-	                  title = fbEvent.name, 
-	                  nid = Some(Random.nextInt(Integer.MAX_VALUE)),
-	                  desc = fbEvent.description,
-	                  cover = fbEvent.pic_cover.get.source,
-	                  start_time = Some(
-	                      df.parse(fbEvent.start_time.get).getTime().toLong /1000),	                  
-	                  facebook = fbEvent.eid.map(_.toString),
-	                  location = Some(geo),
-	                  heat = Some((fbEvent.attending_count.get * 5)
-	                      + ((fbEvent.all_members_count.get - fbEvent.attending_count.get)*1)
-	                      - (fbEvent.declined_count.get * 3)
-	                     ),
-	                  venues = Some(List(venue)),
-	                  version = Some(System.currentTimeMillis / 1000)
-	              )
-	            )
-            }
+          val cover_data = fbEvent.pic_cover
+          val currentEvent = SEvent(
+              title = fbEvent.name, 
+              nid = Some(Random.nextInt(Integer.MAX_VALUE)),
+              desc = fbEvent.description,
+              cover = cover_data match {
+                case Some(pic) => pic.source
+                case None => None
+              },
+              start_time = Some(
+                  df.parse(fbEvent.start_time.get).getTime().toLong /1000),	                  
+              facebook = fbEvent.eid.map(_.toString),
+              location = Some(geo),
+              heat = Some((fbEvent.attending_count.get * 5)
+                  + ((fbEvent.all_members_count.get - fbEvent.attending_count.get)*1)
+                  - (fbEvent.declined_count.get * 3)
+                 ),
+              venues = Some(List(venue)),
+              explicit = Some(fbEvent.description.get + " " + fbEvent.name.get contains Seq("gay", "porn", "orgy")),
+              version = Some(System.currentTimeMillis / 1000)
+          )
+          if (databseOnline == Nil){
+            SEvents.add(currentEvent)
+          } else {
+            currentEvent.id = databseOnline(0).id
+            SEvents.update(currentEvent)
+          }
+        }
         case Failure(fixDatabase) => None
+        case _ => None
       }
       log.info("Titile of event is: "+ fbEvent.name.get)
       }

@@ -47,7 +47,8 @@ case class SVenue(
     city:			Option[String] = None,
     street:			Option[String] = None,
     zip:			Option[String] = None,
-    working_hours:	Option[SVHours] = None)
+    working_hours:	Option[SVHours] = None,
+    explicit:		Option[Boolean] = Some(false))
 case class SEvent(
     var id: 	Option[String] = None,
     nid: 		Option[Int] = None,
@@ -67,6 +68,7 @@ case class SEvent(
     location:	Option[GeoJson] = None,
     tickets:	Option[List[String]] = None,
     related:	Option[List[List[String]]] = None,
+    explicit:	Option[Boolean] = Some(false),
     version:	Option[Long] = None) extends Model[String]
 
 //@ TODO Add media: images, videos, links etc...
@@ -85,8 +87,8 @@ object SEvent extends ModelCompanion[SEvent, String] with SprayJsonTypeMapper {
   import sprest.Formats._
   implicit val geoJsonJsonFormat = jsonFormat3(GeoJson.apply _)
   implicit val sVHoursJsonFormat = jsonFormat2(SVHours.apply _)
-  implicit val sVenueJsonFormat = jsonFormat8(SVenue.apply _) 
-  implicit val sEventJsonFormat = jsonFormat19(SEvent.apply _)
+  implicit val sVenueJsonFormat = jsonFormat9(SVenue.apply _) 
+  implicit val sEventJsonFormat = jsonFormat20(SEvent.apply _)
   /*implicit val geoJsonHandler = Macros.handler[GeoJson]
   implicit val sVHoursHandler = Macros.handler[SVHours]
   implicit val sVenueHandler = Macros.handler[SVenue]
