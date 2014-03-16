@@ -152,7 +152,7 @@ trait Mongo extends ReactiveMongoPersistence {
         }
         case None => None
       }
-      parameters = parameters add BSONDocument("$limit" -> limit)
+      parameters = parameters add BSONDocument("$limit" -> (limit + offset))
       parameters = parameters add BSONDocument("$skip" -> offset)
       log.info(BSONArray.pretty(parameters))
       val data = db.command(RawCommand(
