@@ -37,10 +37,11 @@ trait Mongo extends ReactiveMongoPersistence {
 
   private val driver = new MongoDriver(actorSystem)
   private val dbName = "sprayreactivemongodbexample"
-  private val userName = "dev-server"
-  private val password = "serverpants"
-  private val credentials = Seq(Authenticate(dbName, userName, password))
-  private val connection = driver.connection(List("localhost"), credentials)
+  private val userName = "event-user"
+  private val password = "socialheat"
+  private val credentials = Authenticate(dbName, userName, password)
+  private val connection = driver.connection(List("193.219.158.39"), List(credentials))
+  //connection.authenticate(dbName, userName, password)
   private val db = connection("sprayreactivemongodbexample")
 
   // Json mapping to / from BSON - in this case we want "_id" from BSON to be
