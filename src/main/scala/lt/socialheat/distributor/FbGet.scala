@@ -37,6 +37,7 @@ import models.SVenue
 import java.text.SimpleDateFormat
 import java.text.Format
 import java.util.Locale
+import reactivemongo.core.nodeset.Authenticate
 
 
 case class FBApiResult[T](data: List[T])
@@ -63,9 +64,13 @@ object FbGet extends App {
   responseFuture onComplete {
     case Success(fbApiData(fbData)) => {
       import Akka.actorSystem
-      val driver = new MongoDriver(actorSystem)
-      val connection = driver.connection(List("localhost"))
-      val db = connection("sprayreactivemongodbexample")
+	  val driver = new MongoDriver(actorSystem)
+	  val dbName = "sprayreactivemongodbexample"
+	  val userName = "event-user"
+	  val password = "socialheat"
+	  val credentials = Authenticate(dbName, userName, password)
+	  val connection = driver.connection(List("193.219.158.39"), List(credentials))
+	  val db = connection("sprayreactivemongodbexample")
       val collection = db("events")
       for(fbEvent <- fbData){
       val fields = JsObject("title" -> JsString(fbEvent.name.get))

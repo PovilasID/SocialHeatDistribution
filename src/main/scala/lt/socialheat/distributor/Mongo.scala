@@ -41,7 +41,6 @@ trait Mongo extends ReactiveMongoPersistence {
   private val password = "socialheat"
   private val credentials = Authenticate(dbName, userName, password)
   private val connection = driver.connection(List("193.219.158.39"), List(credentials))
-  //connection.authenticate(dbName, userName, password)
   private val db = connection("sprayreactivemongodbexample")
 
   // Json mapping to / from BSON - in this case we want "_id" from BSON to be
@@ -99,14 +98,14 @@ trait Mongo extends ReactiveMongoPersistence {
       }
       start_time match {
       	case Some(start_time) => 
-      		  matchPrams = matchPrams add BSONDocument("start" ->
-      				  BSONDocument("$gte" -> start_time)) 
+      		  matchPrams = matchPrams add BSONDocument("start_time" ->
+      				  BSONDocument("$gte" -> start_time*1000)) 
       	case None => None
       }
       end_time match {
       	case Some(end_time) => 
-      		  matchPrams = matchPrams add BSONDocument("end" ->
-      				  BSONDocument("$lt" -> end_time))
+      		  matchPrams = matchPrams add BSONDocument("end_time" ->
+      				  BSONDocument("$lt" -> end_time*1000))
       	case None => None
       }
       categories match {
@@ -133,9 +132,13 @@ trait Mongo extends ReactiveMongoPersistence {
           for(sPram <- sortPramsSplit){
             sPram match {
               case sPram if(sPram.head == '-') => sortPrams = sortPrams add BSONDocument(sPram.substring(1) -> -1)
-              case "soon" => sortPrams = sortPrams add BSONDocument(
+              case "soon" => {
+                sortPrams = sortPrams add BSONDocument(
                   "location.distance" -> 1,
                   "start_time" -> 1)
+                matchPrams = matchPrams add BSONDocument("end" ->
+      				  BSONDocument("$lt" -> end_time))
+              }
               case "-soon" => sortPrams = sortPrams add BSONDocument(
                   "location.distance" -> -1,
                   "start_time" -> -1)
