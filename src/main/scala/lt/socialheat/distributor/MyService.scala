@@ -85,8 +85,8 @@ lazy val myRoute =
         'explicit ? false, //skip that shit
         'tags ?,
         'skip ?, //@ TODO Check
-        'start_time ?,
-        'end_time ?,
+        'start_time.as[Int] ?,
+        'end_time.as[Int] ?,
         'location ?, //lat:long:proximity
         'sort ?,			//soon
         'locale ?, 

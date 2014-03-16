@@ -72,8 +72,8 @@ trait Mongo extends ReactiveMongoPersistence {
         categories: Option[String],
         tags: Option[String],
         skip: Option[String],
-        start_time: Option[String],
-        end_time: Option[String],
+        start_time: Option[Int],
+        end_time: Option[Int],
         location: Option[String],
         sort: Option[String],
         limit: Int,
@@ -99,13 +99,13 @@ trait Mongo extends ReactiveMongoPersistence {
       start_time match {
       	case Some(start_time) => 
       		  matchPrams = matchPrams add BSONDocument("start_time" ->
-      				  BSONDocument("$gte" -> start_time*1000)) 
+      				  BSONDocument("$gte" -> start_time)) 
       	case None => None
       }
       end_time match {
       	case Some(end_time) => 
-      		  matchPrams = matchPrams add BSONDocument("end_time" ->
-      				  BSONDocument("$lt" -> end_time*1000))
+      		  matchPrams = matchPrams add BSONDocument("start_time" ->
+      				  BSONDocument("$lt" -> end_time))
       	case None => None
       }
       categories match {
@@ -138,7 +138,7 @@ trait Mongo extends ReactiveMongoPersistence {
                   "start_time" -> 1)
                 val javaScriptQuerie = "this.start_time > " + 
                 		System.currentTimeMillis().toString() +
-                		"this.location.distance /  10 / 6371000 / 1000" //@ TODO 10m/s to rad/mms
+                		"this.location.distance / 10 / 6371000 / 1000" //@ TODO 10m/s to rad/mms
                 parameters = parameters add BSONDocument(
                     "$where" ->  javaScriptQuerie)
               }
@@ -154,6 +154,7 @@ trait Mongo extends ReactiveMongoPersistence {
       }
       parameters = parameters add BSONDocument("$limit" -> limit)
       parameters = parameters add BSONDocument("$skip" -> offset)
+      log.info(BSONArray.pretty(parameters))
       val data = db.command(RawCommand(
         BSONDocument(
             "aggregate" -> collName,
