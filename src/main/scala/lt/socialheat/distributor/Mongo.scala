@@ -118,9 +118,9 @@ trait Mongo extends ReactiveMongoPersistence {
         									BSONDocument("$in" ->tags.split(",")))
         case None => None
       }
-      (categories, tags) match {
-        case (categories, tags) 
-        	if (categories.isDefined || tags.isDefined) => 
+      (categories, tags, start_time, end_time) match {
+        case (categories, tags, start_time, end_time) 
+        	if (categories.isDefined || tags.isDefined || start_time.isDefined || end_time.isDefined) => 
         	  parameters = parameters add BSONDocument(
         			"$match" ->  
       					BSONDocument("$and" -> matchPrams))
@@ -136,8 +136,11 @@ trait Mongo extends ReactiveMongoPersistence {
                 sortPrams = sortPrams add BSONDocument(
                   "location.distance" -> 1,
                   "start_time" -> 1)
-                matchPrams = matchPrams add BSONDocument("end" ->
-      				  BSONDocument("$lt" -> end_time))
+                val javaScriptQuerie = "this.start_time > " + 
+                		System.currentTimeMillis().toString() +
+                		"this.location.distance /  10 / 6371000 / 1000" //@ TODO 10m/s to rad/mms
+                parameters = parameters add BSONDocument(
+                    "$where" ->  javaScriptQuerie)
               }
               case "-soon" => sortPrams = sortPrams add BSONDocument(
                   "location.distance" -> -1,
