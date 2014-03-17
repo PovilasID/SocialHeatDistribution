@@ -52,6 +52,8 @@ object FbGet extends App {
   import system.dispatcher // execution context for futures below
   val log = Logging(system, getClass)
 
+  val explicitKeywords = Seq("gay", "porn", "orgy", "xxx")
+  
   log.info("Requesting the events form Kaunas...")
 
   import models.fbEventJsonProtocol._
@@ -59,7 +61,19 @@ object FbGet extends App {
   val pipeline = addHeader(Accept(MediaTypes.`application/json`)) ~> sendReceive ~> unmarshal[fbApiData[fbEven]]
 
   val responseFuture = pipeline {
-    Get("https://graph.facebook.com/fql?q=SELECT+eid,name,+host,creator,parent_group_id,+description,pic,+pic_square,pic_cover,start_time,end_time,timezone,location,venue,+all_members_count,attending_count,unsure_count,+declined_count,ticket_uri,update_time,version+FROM+event+WHERE+eid+IN+(SELECT+eid+FROM+event_member+WHERE+uid+IN+(SELECT+page_id+FROM+place+WHERE+distance(latitude,+longitude,+%2254.8871751%22,%2224.000000%22)+%3C+50000))AND+start_time+%3E+now()&access_token=562249617160396|007918fae6cd11b6fcbbeea123a132ab")
+    Get("https://graph.facebook.com/fql?q="+
+        "SELECT+eid,name,+host,creator,parent_group_id,+description,pic,+pic_square,pic_cover,start_time,end_time,timezone,location,venue,+all_members_count,attending_count,unsure_count,+declined_count,ticket_uri,update_time,version+"+
+        "FROM+event+"+
+        "WHERE+eid+IN+("+
+    		"SELECT+eid+"+
+    		"FROM+event_member+"+
+    		"WHERE+uid+IN+("+
+    			"SELECT+page_id+"+
+    			"FROM+place+"+
+    			"WHERE+distance("+
+    				"latitude,+longitude,+%2254.8871751%22,%2224.000000%22"+
+    			")+%3C+50000))"+
+    			"AND+start_time+%3E+now()&access_token=562249617160396|007918fae6cd11b6fcbbeea123a132ab")
   }
   responseFuture onComplete {
     case Success(fbApiData(fbData)) => {
@@ -73,7 +87,6 @@ object FbGet extends App {
 	  val db = connection("sprayreactivemongodbexample")
       val collection = db("events")
       for(fbEvent <- fbData){
-      val fields = JsObject("title" -> JsString(fbEvent.name.get))
       SEvents.bindByFbID(fbEvent.eid.get.toString()) onComplete {
         //@ TODO fix upsert
         case Success(databseOnline)  => {
@@ -106,7 +119,7 @@ object FbGet extends App {
                   - (fbEvent.declined_count.get * 3)
                  ),
               venues = Some(List(venue)),
-              explicit = Some(fbEvent.description.get + " " + fbEvent.name.get contains Seq("gay", "porn", "orgy")),
+              explicit = Some(fbEvent.description.get + " " + fbEvent.name.get contains explicitKeywords),
               version = Some(System.currentTimeMillis / 1000)
           )
           if (databseOnline == Nil){
@@ -124,7 +137,7 @@ object FbGet extends App {
       shutdown()
       }
     case Success(somethingUnexpected) =>
-      log.warning("The Google API call was successful but returned something unexpected: '{}'.", somethingUnexpected)
+      log.warning("The Facebook API call was successful but returned something unexpected: '{}'.", somethingUnexpected)
       shutdown()
 
     case Failure(error) =>
@@ -135,5 +148,6 @@ object FbGet extends App {
   def shutdown(): Unit = {
     IO(Http).ask(Http.CloseAll)(1.second).await
     system.shutdown()
+    sys.exit()
   }
 }
