@@ -11,7 +11,7 @@ scalacOptions := Seq("-unchecked", "-deprecation", "-encoding", "utf8")
 resolvers ++= Seq(
   "spray repo" at "http://repo.spray.io/",
   "Sonatype Snapshots" at "http://oss.sonatype.org/content/repositories/snapshots/",
-  "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases/",
+  "Typesafe repository releases" at "http://repo.typesafe.com/typesafe/releases/",
   "sprest snapshots" at "http://markschaake.github.com/releases"
 )
 

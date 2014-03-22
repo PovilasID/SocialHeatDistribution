@@ -5,9 +5,11 @@ import spray.json.{JsonFormat, DefaultJsonProtocol}
 
 case class fbECover(
     cover_id:	Option[Either[String,Int]],
-    source:		Option[String]){}
+    source:		Option[String]){
+}
 
 case class fbEVenue(
+    name:			Option[String],
     latitude:		Option[Double],
     longitude:		Option[Double],
     city:			Option[String],
@@ -15,7 +17,14 @@ case class fbEVenue(
     country:		Option[String],
     id:				Option[Int],
     street:			Option[String],
-    zip:			Option[String]){}
+    zip:			Option[String])
+
+case class fbSummary(
+    noreply_count:	Option[Int],
+    maybe_count:	Option[Int],
+    declined_count:	Option[Int],
+    attending_count:Option[Int],
+    count:			Option[Int])
 
 case class fbEven (
     eid:				Option[Long],
@@ -37,14 +46,15 @@ case class fbEven (
     unsure_count:		Option[Int],
     declined_count:		Option[Int],
     ticket_uri:			Option[String],
-    update_time:		Option[Long]) {
-}
+    update_time:		Option[Long],
+    summary:			Option[fbSummary])
 
 case class fbApiData[T](data: List[T])
 
 object fbEventJsonProtocol extends DefaultJsonProtocol {
   implicit val coverFormat = jsonFormat2(fbECover)
-  implicit val venueFormat = jsonFormat8(fbEVenue)
-  implicit val eventFormat = jsonFormat20(fbEven)
+  implicit val venueFormat = jsonFormat9(fbEVenue)
+  implicit val summaryFormat = jsonFormat5(fbSummary)
+  implicit val eventFormat = jsonFormat21(fbEven)
   implicit def fbApiDataFormat[T :JsonFormat] = jsonFormat1(fbApiData.apply[T])
 }

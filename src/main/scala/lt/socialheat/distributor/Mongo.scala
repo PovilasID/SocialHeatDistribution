@@ -59,7 +59,7 @@ trait Mongo extends ReactiveMongoPersistence {
     
     override protected val collection = db(collName)
     
-    def findLimitedEvents()(implicit ec: ExecutionContext) = collection.find(BSONDocument.empty)/*.sort(BSONDocument("heat" -> -1))*/.query(BSONDocument("tags" -> "lazy")).options(QueryOpts().batchSize(10)).cursor.collect[List](10, true)
+    //def findLimitedEvents()(implicit ec: ExecutionContext) = collection.find(BSONDocument.empty)/*.sort(BSONDocument("heat" -> -1))*/.query(BSONDocument("tags" -> "lazy")).options(QueryOpts().batchSize(10)).cursor.collect[List](10, true)
     
 	  implicit val system = actorSystem
 	  import system.dispatcher // execution context for futures
@@ -184,7 +184,7 @@ trait Mongo extends ReactiveMongoPersistence {
     }
     def bindByFbID(eid:String)(implicit ec: ExecutionContext)= 
       find(BSONDocument("facebook" -> eid))
-    def removeAll()(implicit ec: ExecutionContext) = collection.remove(BSONDocument.empty)
+    //def removeAll()(implicit ec: ExecutionContext) = collection.remove(BSONDocument.empty)
     def findAll()(implicit ec: ExecutionContext) = find(BSONDocument.empty)
   }
 

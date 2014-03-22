@@ -81,7 +81,7 @@ lazy val myRoute =
         }
       }
   protected lazy val getSEventRoute =
-    parameter('categories ?,			//Filtering 
+    parameter('categories ?,			//Filtering
         'explicit ? false, //skip that shit
         'explicitVenues.as[Boolean] ?,
         'tags ?,

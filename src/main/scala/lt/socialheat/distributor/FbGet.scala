@@ -1,65 +1,48 @@
 package lt.socialheat.distributor
 
-import scala.util.{Success, Failure}
 import scala.concurrent.duration._
-import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.event.Logging
 import akka.io.IO
 import spray.json.{JsonFormat, DefaultJsonProtocol}
 import spray.can.Http
-import spray.httpx.SprayJsonSupport
 import spray.client.pipelining._
 import models.SEvent
-import spray.httpx.encoding.Gzip
-import models.SVenue
-import scala.actors.Future
-import spray.http.HttpRequest
-import models.fbEven
-import models.fbApiData
+import models._
 import scala.util.{Success, Failure}
-import akka.actor.{Props, ActorSystem}
-import spray.httpx.SprayJsonSupport
+import akka.actor.ActorSystem
 import spray.http._
-import spray.util._
 import spray.http.HttpHeaders.Accept
 import reactivemongo.api.MongoDriver
-import reactivemongo.bson.BSONDocument
-import reactivemongo.core.commands.GetLastError
-import 	models.fbECover
-import reactivemongo.bson.BSONArray
 import Mongo.SEvents
-import spray.json.JsObject
-import spray.json.JsString
-import scala.util.Random
 import models.GeoJson
 import models.SVenue
 import java.text.SimpleDateFormat
-import java.text.Format
-import java.util.Locale
 import reactivemongo.core.nodeset.Authenticate
-
+import spray.httpx.SprayJsonSupport
+import scala.concurrent.{ExecutionContext, Future}
 
 case class FBApiResult[T](data: List[T])
 
-object ElevationJsonProtocol extends DefaultJsonProtocol {
+object fBApiJsonProtocol extends DefaultJsonProtocol {
   implicit def fbApiResultFormat[T :JsonFormat] = jsonFormat1(FBApiResult.apply[T])
 }
 
 object FbGet extends App {
   // we need an ActorSystem to host our application in
   implicit val system = ActorSystem("simple-spray-client")
+
   import system.dispatcher // execution context for futures below
   val log = Logging(system, getClass)
 
   val explicitKeywords = Seq("gay", "porn", "orgy", "xxx")
   
   log.info("Requesting the events form Kaunas...")
-
+  
   import models.fbEventJsonProtocol._
   import SprayJsonSupport._
   val pipeline = addHeader(Accept(MediaTypes.`application/json`)) ~> sendReceive ~> unmarshal[fbApiData[fbEven]]
-
+  
   val responseFuture = pipeline {
     Get("https://graph.facebook.com/fql?q="+
         "SELECT+eid,name,+host,creator,parent_group_id,+description,pic,+pic_square,pic_cover,start_time,end_time,timezone,location,venue,+all_members_count,attending_count,unsure_count,+declined_count,ticket_uri,update_time,version+"+
@@ -75,10 +58,10 @@ object FbGet extends App {
     			")+%3C+50000))"+
     			"AND+start_time+%3E+now()&access_token=562249617160396|007918fae6cd11b6fcbbeea123a132ab")
   }
+
   responseFuture onComplete {
     case Success(fbApiData(fbData)) => {
-      import Akka.actorSystem
-	  val driver = new MongoDriver(actorSystem)
+	  val driver = new MongoDriver(system)
 	  val dbName = "sprayreactivemongodbexample"
 	  val userName = "event-user"
 	  val password = "socialheat"
@@ -87,31 +70,53 @@ object FbGet extends App {
 	  val db = connection("sprayreactivemongodbexample")
       val collection = db("events")
       for(fbEvent <- fbData){
-      SEvents.bindByFbID(fbEvent.eid.get.toString()) onComplete {
+      SEvents.bindByFbID(fbEvent.eid.get.toString) onComplete {
         //@ TODO fix upsert
-        case Success(databseOnline)  => {
+        case Success(databseOnline)  =>
+          var longitude = fbEvent.venue.flatMap(_.longitude)
+          var latitude = fbEvent.venue.flatMap(_.latitude)
+          (longitude, latitude) match {
+            case (None, None) => {
+              (fbEvent.venue.flatMap(_.name), fbEvent.location) match {
+                case (name, location) if !(name.isEmpty && location.isEmpty) => {
+                  import models.geocoderJsonProtocol._
+                  import SprayJsonSupport._
+                  val pipelineGeocoder = addHeader(Accept(MediaTypes.`application/json`)) ~> sendReceive ~> unmarshal[geocoderApiResult[GCGeometry]]
+                  val responseGeocoderFuture = pipelineGeocoder {Get("https://maps.googleapis.com/maps/api/geocode/json?address=1600+Amphitheatre+Parkway,+Mountain+View,+CA&sensor=false&key=AIzaSyDg7RUkKwvMV-ZbhbgJUf0TunFPujn4e3k")}
+                  responseGeocoderFuture onComplete {
+                    case Success(geocodedCordinates) => {
+                      latitude = geocodedCordinates.results(0).location.flatMap(_.lat)
+                      longitude = geocodedCordinates.results(0).location.flatMap(_.lng)
+                    }
+                  } 
+                }
+              }
+            }
+            case _ => None
+          }
           val geo = GeoJson(
-                Some("Point"), Some(List(
-                    fbEvent.venue.get.latitude, fbEvent.venue.get.longitude)
-              ))
+                Some("Point"), 
+                Some(List(longitude,latitude))
+                )
           val venue = SVenue(
               title = fbEvent.location,
-              country = fbEvent.venue.get.country,
+              country = fbEvent.venue.flatMap(_.country),
               city = fbEvent.venue.get.city,
               street = fbEvent.venue.get.street,
               zip = fbEvent.venue.get.zip)
-          val df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+          val sources = fbEvent.summary match {
+            case Some(summary) => fbEvent.summary
+            case _ => None
+          }
+          val dfISO8601 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
           val cover_data = fbEvent.pic_cover
           val currentEvent = SEvent(
-              title = fbEvent.name, 
-              nid = Some(Random.nextInt(Integer.MAX_VALUE)),
+              title = fbEvent.name,
               desc = fbEvent.description,
-              cover = cover_data match {
-                case Some(pic) => pic.source
-                case None => None
-              },
+              cover = cover_data.flatMap(_.source),
               start_time = Some(
-                  df.parse(fbEvent.start_time.get).getTime().toLong /1000),	                  
+                  dfISO8601.parse(fbEvent.start_time.get).getTime().toLong /1000),
+                  //@ TODO add 2014-03-36 date format
               facebook = fbEvent.eid.map(_.toString),
               location = Some(geo),
               heat = Some((fbEvent.attending_count.get * 5)
@@ -122,20 +127,24 @@ object FbGet extends App {
               explicit = Some(fbEvent.description.get + " " + fbEvent.name.get contains explicitKeywords),
               version = Some(System.currentTimeMillis / 1000)
           )
-          if (databseOnline == Nil){
-            SEvents.add(currentEvent)
-          } else {
-            currentEvent.id = databseOnline(0).id
-            SEvents.update(currentEvent)
+
+          val dbOperation =
+            if (databseOnline == Nil) SEvents.add(currentEvent)
+	          else {
+	            currentEvent.id = databseOnline(0).id
+	            SEvents.update(currentEvent)
+	          }
+          dbOperation.onComplete { op =>
+            log.info(s"Yay, database op completed with $op")
+            shutdown()
           }
-        }
         case Failure(fixDatabase) => None
         case _ => None
       }
-      log.info("Titile of event is: "+ fbEvent.name.get)
+      log.info("Title of event is: "+ fbEvent.name.get)
       }
-      shutdown()
-      }
+      //shutdown()
+    }
     case Success(somethingUnexpected) =>
       log.warning("The Facebook API call was successful but returned something unexpected: '{}'.", somethingUnexpected)
       shutdown()
@@ -146,8 +155,9 @@ object FbGet extends App {
   }
 
   def shutdown(): Unit = {
-    IO(Http).ask(Http.CloseAll)(1.second).await
-    system.shutdown()
-    sys.exit()
+    IO(Http).ask(Http.CloseAll)(1.second).onComplete { _ => 
+      system.shutdown()
+    }
+    //sys.exit()
   }
 }
