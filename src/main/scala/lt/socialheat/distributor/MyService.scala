@@ -81,7 +81,9 @@ lazy val myRoute =
         }
       }
   protected lazy val getSEventRoute =
-    parameter('categories ?,			//Filtering
+    parameter(
+        'q ?,
+        'categories ?,			//Filtering
         'explicit ? false, //skip that shit
         'explicitVenues.as[Boolean] ?,
         'tags ?,
@@ -94,7 +96,7 @@ lazy val myRoute =
         'limit ? 10,
         'offset ? 0
         ) { 
-    (categories, explicit, explicitVenues, tags, skip, start_time, end_time, location, sort, locale, limit, offset) =>
+    (q, categories, explicit, explicitVenues, tags, skip, start_time, end_time, location, sort, locale, limit, offset) =>
       detach() {
         complete {
           /*SEvents.findEvents(categories,
@@ -108,7 +110,7 @@ lazy val myRoute =
               limit,
               offset)*/
           
-          var events = SEvents.findLimitedEvent(categories, Some(explicit), explicitVenues, tags, skip, start_time, end_time, location, sort, limit, offset)
+          var events = SEvents.findLimitedEvent(q, categories, Some(explicit), explicitVenues, tags, skip, start_time, end_time, location, sort, limit, offset)
           events
         }
       }

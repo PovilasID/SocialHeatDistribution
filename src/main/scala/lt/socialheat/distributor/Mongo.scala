@@ -69,6 +69,7 @@ trait Mongo extends ReactiveMongoPersistence {
     }
     
     def findLimitedEvent(
+        q: Option[String],
         categories: Option[String],
         explicit: Option[Boolean],
         explicitVenues: Option[Boolean],
@@ -111,6 +112,24 @@ trait Mongo extends ReactiveMongoPersistence {
       				  BSONDocument("$lt" -> end_time))
       	case None => None
       }
+      /*
+       * Full text search index requerd for full text search to work
+       * db.emails.ensureIndex({tags: "text", subject: "text", "body": "text"}, {
+       *     name: "email_text_index",
+       *         weight: {
+       *               tags: 5,    // Assume folks are better at tagging than writing
+       *               subject: 4, // Assume the subject is better than the body at description
+       *               body: 1
+       *          }
+       *  })
+       */
+      q match {
+        case Some(q) => matchPrams = matchPrams add BSONDocument("$text" ->
+        		BSONDocument("$search" -> q))
+        // @ Monogo add sorting on textScore
+        //     { $sort: { score: { $meta: "textScore" } } },
+        case None => None
+      }
       categories match {
         case Some(categories) => matchPrams = matchPrams add BSONDocument("categories" -> 
         									BSONDocument("$in" -> categories.split(",")))
@@ -136,9 +155,15 @@ trait Mongo extends ReactiveMongoPersistence {
         case Some(explicitVenue) if explicitVenue == true => None
         case _ => None
       }
-      (categories, tags, start_time, end_time, explicit, explicitVenues) match {
-        case (categories, tags, start_time, end_time, explicit, explicitVenues) 
-        	if (categories.isDefined || tags.isDefined || start_time.isDefined || end_time.isDefined || explicit.isDefined || explicitVenues.isDefined) => 
+      (q, categories, tags, start_time, end_time, explicit, explicitVenues) match {
+        case (q, categories, tags, start_time, end_time, explicit, explicitVenues) 
+        	if (q.isEmpty &&
+        	    categories.isEmpty && 
+        	    tags.isEmpty && 
+        	    start_time.isEmpty && 
+        	    end_time.isEmpty &&
+        	    explicit.isEmpty &&
+        	    explicitVenues.isEmpty) => 
         	  parameters = parameters add BSONDocument(
         			"$match" ->  
       					BSONDocument("$and" -> matchPrams))
