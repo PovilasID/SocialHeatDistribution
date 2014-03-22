@@ -68,6 +68,16 @@ trait Mongo extends ReactiveMongoPersistence {
     	
     }
     
+    def mongoMultiMatcher(matchParmeters:BSONArray, matchData: Option[String], matchName: String) = {
+      var newParmeter = BSONArray()
+      matchData match {
+        case Some(data) => newParmeter = matchParmeters add BSONDocument(matchName -> 
+        BSONDocument("$in" -> data.split(",")))
+        case None => None
+      }
+      newParmeter
+    }
+    
     def findLimitedEvent(
         q: Option[String],
         categories: Option[String],
@@ -130,16 +140,8 @@ trait Mongo extends ReactiveMongoPersistence {
         //     { $sort: { score: { $meta: "textScore" } } },
         case None => None
       }
-      categories match {
-        case Some(categories) => matchPrams = matchPrams add BSONDocument("categories" -> 
-        									BSONDocument("$in" -> categories.split(",")))
-        case None => None
-      }
-      tags match {
-        case Some(tags) => matchPrams = matchPrams add BSONDocument("tags" -> 
-        									BSONDocument("$in" ->tags.split(",")))
-        case None => None
-      }
+      matchPrams = mongoMultiMatcher(matchPrams, tags, "tags")
+      matchPrams = mongoMultiMatcher(matchPrams, categories, "categories")
       explicit match {
         case Some(explicit) if explicit == false => 
           matchPrams = matchPrams add BSONDocument("explicit" -> false)
