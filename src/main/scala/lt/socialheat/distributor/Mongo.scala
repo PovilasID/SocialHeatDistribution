@@ -150,20 +150,20 @@ trait Mongo extends ReactiveMongoPersistence {
        *          }
        *  })
        */
-      q match {
-        case Some(q) => matchPrams = matchPrams add BSONDocument("$text" ->
-        		BSONDocument("$search" -> q))
-        // @ Monogo add sorting on textScore
-        //     { $sort: { score: { $meta: "textScore" } } },
-        case None => None
-      }
       matchPrams = mongoMultiMatcher(matchPrams, tags, "tags")
       matchPrams = mongoMultiMatcher(matchPrams, categories, "categories")
       matchPrams = mongoFalseFilter(matchPrams, explicit, "explicit")
       matchPrams = mongoFalseFilter(matchPrams, explicitVenues, "venues.explicit")
+      q match {
+        case Some(keyword) => matchPrams = matchPrams add BSONDocument("$text" ->
+        		BSONDocument("$search" -> keyword))
+        // @ Monogo add sorting on textScore
+        //     { $sort: { score: { $meta: "textScore" } } },
+        case None => None
+      }
       (q, categories, tags, start_time, end_time, explicit, explicitVenues) match {
         case (q, categories, tags, start_time, end_time, explicit, explicitVenues) 
-        	if (q.isEmpty &&
+        	if !(q.isEmpty &&
         	    categories.isEmpty && 
         	    tags.isEmpty && 
         	    start_time.isEmpty && 
