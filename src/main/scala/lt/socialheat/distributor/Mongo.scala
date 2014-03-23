@@ -67,13 +67,30 @@ trait Mongo extends ReactiveMongoPersistence {
     def pullEventsFB (args: Array[String])(implicit ec: ExecutionContext) = {
     	
     }
-    
+    var newParmeter = BSONArray()
+
+    /**
+     * Method for matching multiple valued data like tags or categories
+     * matchData is split on ,
+     */
     def mongoMultiMatcher(matchParmeters:BSONArray, matchData: Option[String], matchName: String) = {
-      var newParmeter = BSONArray()
       matchData match {
         case Some(data) => newParmeter = matchParmeters add BSONDocument(matchName -> 
         BSONDocument("$in" -> data.split(",")))
         case None => None
+      }
+      newParmeter
+    }
+    
+    /**
+     * Method for matching false data
+     */
+    def mongoFalseFilter(matchParmeters:BSONArray, matchData: Option[Boolean], matchName: String) = {
+      matchData match {
+    	case Some(data) if data == false => 
+          newParmeter = matchParmeters add BSONDocument(matchName -> false)
+        case Some(data) if data == true => None
+        case _ => None
       }
       newParmeter
     }
@@ -142,21 +159,8 @@ trait Mongo extends ReactiveMongoPersistence {
       }
       matchPrams = mongoMultiMatcher(matchPrams, tags, "tags")
       matchPrams = mongoMultiMatcher(matchPrams, categories, "categories")
-      explicit match {
-        case Some(explicit) if explicit == false => 
-          matchPrams = matchPrams add BSONDocument("explicit" -> false)
-        case Some(explicit) if explicit == true => 
-          matchPrams = matchPrams add BSONDocument("explicit" -> 
-          	BSONDocument("$in" -> BSONArray(true, false)))
-        case _ => None
-      }
-      explicitVenues match {
-        case Some(explicitVenue) if explicitVenue == false => 
-          matchPrams = matchPrams add BSONDocument("venues.explicit" -> 
-          	BSONDocument("$in" -> BSONArray(false)))
-        case Some(explicitVenue) if explicitVenue == true => None
-        case _ => None
-      }
+      matchPrams = mongoFalseFilter(matchPrams, explicit, "explicit")
+      matchPrams = mongoFalseFilter(matchPrams, explicitVenues, "venues.explicit")
       (q, categories, tags, start_time, end_time, explicit, explicitVenues) match {
         case (q, categories, tags, start_time, end_time, explicit, explicitVenues) 
         	if (q.isEmpty &&

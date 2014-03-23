@@ -50,11 +50,11 @@ case class SVenue(
     working_hours:	Option[SVHours] = None,
     explicit:		Option[Boolean] = Some(false))
 case class SSource(
-    facebook:	Option[String] = None,
-    lastfm:		Option[String] = None,
-    eventbrite:	Option[String] = None,
-    foursquare:	Option[String] = None,
-    other:		Option[List[Option[List[String]]]] = None)
+    facebook:	Option[Int] = None,
+    lastfm:		Option[Int] = None,
+    eventbrite:	Option[String],
+    foursquare:	Option[String],
+    other:		Option[List[Option[List[String]]]])
 case class SEvent(
     var id: 	Option[String] = None,
     nid: 		Option[Int] = None,
