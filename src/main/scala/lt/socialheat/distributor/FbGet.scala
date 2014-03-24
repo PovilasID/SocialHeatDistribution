@@ -59,6 +59,22 @@ object FbGet extends App {
     			"AND+start_time+%3E+now()&access_token=562249617160396|007918fae6cd11b6fcbbeea123a132ab")
   }
 
+
+  def getTimeFromISOString(date: Option[String]):Long = {
+    val dfISO8601withTime = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+    val dfISO8601noTime = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+    var unixTime: Long = 0
+    date match {
+      case Some(unformated) if unformated.length() == 24 => 
+        dfISO8601withTime.parse(unformated).getTime().toLong /1000
+      case Some(unformated) if unformated.length() == 10 => 
+        dfISO8601noTime.parse(unformated).getTime().toLong /1000
+      case Some(unformated) if unformated.length() != 24 || unformated.length() != 10 => 
+        log.warning("Frong date format")
+        0
+      case None => 0
+    }
+  }
   responseFuture onComplete {
     case Success(fbApiData(fbData)) => {
 	  val driver = new MongoDriver(system)
@@ -108,14 +124,12 @@ object FbGet extends App {
             case Some(summary) => fbEvent.summary
             case _ => None
           }
-          val dfISO8601 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
           val cover_data = fbEvent.pic_cover
           val currentEvent = SEvent(
               title = fbEvent.name,
               desc = fbEvent.description,
               cover = cover_data.flatMap(_.source),
-              start_time = Some(
-                  dfISO8601.parse(fbEvent.start_time.get).getTime().toLong /1000),
+              start_time = Some(getTimeFromISOString(fbEvent.start_time)),
                   //@ TODO add 2014-03-36 date format
               facebook = fbEvent.eid.map(_.toString),
               location = Some(geo),
