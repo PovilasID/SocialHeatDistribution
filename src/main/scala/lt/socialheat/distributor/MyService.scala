@@ -20,6 +20,8 @@ import spray.routing.directives.DetachMagnet.fromUnit
 import spray.routing.directives.ParamDefMagnet.apply
 import Mongo.SEvents
 import models.SEvent
+import spray.routing.authentication.BasicAuth
+import spray.routing.authentication.UserPass
 
 
 class MyServiceActor extends Actor with MyService {
@@ -29,6 +31,14 @@ class MyServiceActor extends Actor with MyService {
 
 trait MyService extends HttpService {
 
+  var user:Option[String] = None
+  
+  def myUserPassAuthenticator(userPass: Option[UserPass]): Future[Option[String]] = {
+	  Future {
+	    if (userPass.exists(up => up.user == "John" && up.pass == "p4ssw0rd")) Some("John")
+	    else None
+	  }
+  }
 lazy val myRoute =
     path("person") {
       put {
@@ -49,6 +59,14 @@ lazy val myRoute =
         putSEventRoute
       }
     } ~
+    pathPrefix("user"){
+      path("events"){
+        authenticate(BasicAuth(myUserPassAuthenticator _, realm = "Personalized evensts")) { userId =>
+          user = Some(userId)
+          getSEventRoute
+        }
+      }
+    }~
     path("trigger"){
       get{
         getTriggerFB
@@ -80,7 +98,9 @@ lazy val myRoute =
           "Succes"
         }
       }
-  protected lazy val getSEventRoute =
+
+
+ protected lazy val getSEventRoute =
     parameter(
         'q ?,
         'categories ?,			//Filtering
@@ -98,25 +118,14 @@ lazy val myRoute =
         ) { 
     (q, categories, explicit, explicitVenues, tags, skip, start_time, end_time, location, sort, locale, limit, offset) =>
       detach() {
-        complete {
-          /*SEvents.findEvents(categories,
-              explicit,
-              tags,
-              skip,
-              start_date,
-              end_date,
-              location,
-              sort,
-              limit,
-              offset)*/
-          
-          var events = SEvents.findLimitedEvent(q, categories, Some(explicit), explicitVenues, tags, skip, start_time, end_time, location, sort, limit, offset)
+        complete {          
+          var events = SEvents.findLimitedEvent(user, q, categories, Some(explicit), explicitVenues, tags, skip, start_time, end_time, location, sort, limit, offset)
           events
         }
       }
   }
-  
-  
+  //val simpleCache = routeCache(maxCapacity = 1000, timeToIdle = Duration("30 min"))  
+
   protected lazy val getRoute =
     parameters('id.as[String]) { id ⇒
       detach() {

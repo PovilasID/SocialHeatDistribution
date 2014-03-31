@@ -73,6 +73,7 @@ object FbGet extends App {
         log.warning("Frong date format")
         0
       case None => 0
+      //@ TODO check if None Long exists
     }
   }
   responseFuture onComplete {

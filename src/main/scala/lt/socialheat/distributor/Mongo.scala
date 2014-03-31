@@ -96,6 +96,7 @@ trait Mongo extends ReactiveMongoPersistence {
     }
     
     def findLimitedEvent(
+        userId: Option[String],
         q: Option[String],
         categories: Option[String],
         explicit: Option[Boolean],
