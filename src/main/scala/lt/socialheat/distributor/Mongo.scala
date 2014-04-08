@@ -216,6 +216,7 @@ trait Mongo extends ReactiveMongoPersistence {
     }
     def bindByFbID(eid:String)(implicit ec: ExecutionContext)= 
       find(BSONDocument("facebook" -> eid))
+      
     //def removeAll()(implicit ec: ExecutionContext) = collection.remove(BSONDocument.empty)
     def findAll()(implicit ec: ExecutionContext) = find(BSONDocument.empty)
   }
@@ -225,6 +226,10 @@ trait Mongo extends ReactiveMongoPersistence {
   object Persons extends UnsecuredDAO[Person]("person") with UUIDStringId {
     def findByName(name: String)(implicit ec: ExecutionContext) = find(BSONDocument("name" → name))
     def findByAge(age: Int)(implicit ec: ExecutionContext) = find(BSONDocument("age" → age))
+  }
+  object SUsers extends UnsecuredDAO[SUser]("users") with UUIDStringId {
+    def checkUser(name:String, pass:String)(implicit ec: ExecutionContext)= 
+      find(BSONDocument("name" -> name, "pass" -> pass))
   }
   object SEvents extends UnsecuredDAO[SEvent]("events") with UUIDStringId {
     def findEvents(categories: Option[String],

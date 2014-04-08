@@ -20,8 +20,16 @@ import spray.routing.directives.DetachMagnet.fromUnit
 import spray.routing.directives.ParamDefMagnet.apply
 import Mongo.SEvents
 import models.SEvent
+import Mongo.SUsers
 import spray.routing.authentication.BasicAuth
 import spray.routing.authentication.UserPass
+import reactivemongo.api.MongoDriver
+import akka.actor.ActorSystem
+import reactivemongo.core.nodeset.Authenticate
+import shapeless.isDefined
+import lt.socialheat.distributor.models.SUser
+import scala.util.Success
+import scala.util.Failure
 
 
 class MyServiceActor extends Actor with MyService {
@@ -33,11 +41,13 @@ trait MyService extends HttpService {
 
   var user:Option[String] = None
   
-  def myUserPassAuthenticator(userPass: Option[UserPass]): Future[Option[String]] = {
-	  Future {
-	    if (userPass.exists(up => up.user == "John" && up.pass == "p4ssw0rd")) Some("John")
-	    else None
-	  }
+  def myUserPassAuthenticator(userPass: Option[UserPass]):Future[Option[String]] = {
+	    userPass match {
+	      case Some(up) => 
+	        SUsers.checkUser(up.user, up.pass).map {
+	          users => users(0).id
+	        }
+	    }
   }
 lazy val myRoute =
     path("person") {
