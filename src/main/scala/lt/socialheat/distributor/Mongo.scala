@@ -34,7 +34,7 @@ import scala.concurrent.duration._
 
 trait Mongo extends ReactiveMongoPersistence {
   import Akka.actorSystem
-
+  
   private val driver = new MongoDriver(actorSystem)
   private val dbName = "sprayreactivemongodbexample"
   private val userName = "event-user"
@@ -42,6 +42,7 @@ trait Mongo extends ReactiveMongoPersistence {
   private val credentials = Authenticate(dbName, userName, password)
   private val connection = driver.connection(List("193.219.158.39"), List(credentials))
   private val db = connection("sprayreactivemongodbexample")
+
 
   // Json mapping to / from BSON - in this case we want "_id" from BSON to be
   // mapped to "id" in JSON in all cases
@@ -96,6 +97,7 @@ trait Mongo extends ReactiveMongoPersistence {
     }
     
     def findLimitedEvent(
+        //userId: Option[String],
         q: Option[String],
         categories: Option[String],
         explicit: Option[Boolean],
@@ -188,8 +190,8 @@ trait Mongo extends ReactiveMongoPersistence {
                 val javaScriptQuerie = "this.start_time > " + 
                 		System.currentTimeMillis().toString() +
                 		"this.location.distance / 10 / 6371000 / 1000" //@ TODO 10m/s to rad/mms
-                parameters = parameters add BSONDocument(
-                    "$where" ->  javaScriptQuerie)
+                //parameters = parameters add BSONDocument(
+                //    "$where" ->  javaScriptQuerie)
               }
               case "-soon" => sortPrams = sortPrams add BSONDocument(
                   "location.distance" -> -1,
@@ -215,6 +217,7 @@ trait Mongo extends ReactiveMongoPersistence {
     }
     def bindByFbID(eid:String)(implicit ec: ExecutionContext)= 
       find(BSONDocument("facebook" -> eid))
+      
     //def removeAll()(implicit ec: ExecutionContext) = collection.remove(BSONDocument.empty)
     def findAll()(implicit ec: ExecutionContext) = find(BSONDocument.empty)
   }
@@ -225,6 +228,10 @@ trait Mongo extends ReactiveMongoPersistence {
     def findByName(name: String)(implicit ec: ExecutionContext) = find(BSONDocument("name" → name))
     def findByAge(age: Int)(implicit ec: ExecutionContext) = find(BSONDocument("age" → age))
   }
+ /* object SUsers extends UnsecuredDAO[SUser]("users") with UUIDStringId {
+    def checkUser(name:String, pass:String)(implicit ec: ExecutionContext)= 
+      find(BSONDocument("name" -> name, "pass" -> pass))
+  }*/
   object SEvents extends UnsecuredDAO[SEvent]("events") with UUIDStringId {
     def findEvents(categories: Option[String],
         explicit: Boolean,
