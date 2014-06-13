@@ -185,7 +185,6 @@ trait Mongo extends ReactiveMongoPersistence {
               case sPram if(sPram.head == '-') => sortPrams = sortPrams add BSONDocument(sPram.substring(1) -> -1)
               case "soon" => {
                 sortPrams = sortPrams add BSONDocument(
-                  "location.distance" -> 1,
                   "start_time" -> 1)
                 val javaScriptQuerie = "this.start_time > " + 
                 		System.currentTimeMillis().toString() +
