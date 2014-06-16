@@ -88,8 +88,8 @@ lazy val myRoute =
         'explicitVenues.as[Boolean] ?,
         'tags ?,
         'skip ?, //@ TODO Check
-        'start_time.as[Int] ?,
-        'end_time.as[Int] ?,
+        'start_time.as[Long] ?,
+        'end_time.as[Long] ?,
         'location ?, //lat:long:proximity
         'sort ?,			//soon
         'locale ?, 

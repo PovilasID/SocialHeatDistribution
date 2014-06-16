@@ -104,8 +104,8 @@ trait Mongo extends ReactiveMongoPersistence {
         explicitVenues: Option[Boolean],
         tags: Option[String],
         skip: Option[String],
-        start_time: Option[Int],
-        end_time: Option[Int],
+        start_time: Option[Long],
+        end_time: Option[Long],
         location: Option[String],
         sort: Option[String],
         limit: Int,
@@ -129,18 +129,6 @@ trait Mongo extends ReactiveMongoPersistence {
         case None => None
       }
 
-      start_time match {
-      	case Some(start_time) => 
-      		  matchPrams = matchPrams add BSONDocument("start_time" ->
-      				  BSONDocument("$gte" -> start_time)) 
-      	case None => None
-      }
-      end_time match {
-      	case Some(end_time) => 
-      		  matchPrams = matchPrams add BSONDocument("start_time" ->
-      				  BSONDocument("$lt" -> end_time))
-      	case None => None
-      }
       /*
        * Full text search index requerd for full text search to work
        * db.emails.ensureIndex({tags: "text", subject: "text", "body": "text"}, {
@@ -156,6 +144,22 @@ trait Mongo extends ReactiveMongoPersistence {
       matchPrams = mongoMultiMatcher(matchPrams, categories, "categories")
       matchPrams = mongoFalseFilter(matchPrams, explicit, "explicit")
       matchPrams = mongoFalseFilter(matchPrams, explicitVenues, "venues.explicit")
+      
+      newParmeter = BSONArray()
+            
+      start_time match {
+      	case Some(start_time) => 
+      		  matchPrams = matchPrams add BSONDocument("start_time" ->
+      				  BSONDocument("$gte" -> start_time)) 
+      	case None => None
+      }
+      end_time match {
+      	case Some(end_time) => 
+      		  matchPrams = matchPrams add BSONDocument("start_time" ->
+      				  BSONDocument("$lt" -> end_time))
+      	case None => None
+      }
+      
       q match {
         case Some(keyword) => matchPrams = matchPrams add BSONDocument("$text" ->
         		BSONDocument("$search" -> keyword))
@@ -163,7 +167,9 @@ trait Mongo extends ReactiveMongoPersistence {
         //     { $sort: { score: { $meta: "textScore" } } },
         case None => None
       }
-      (q, categories, tags, start_time, end_time, explicit, explicitVenues) match {
+      //var soon = None
+      
+     (q, categories, tags, start_time, end_time, explicit, explicitVenues) match {
         case (q, categories, tags, start_time, end_time, explicit, explicitVenues) 
         	if !(q.isEmpty &&
         	    categories.isEmpty && 
@@ -186,6 +192,8 @@ trait Mongo extends ReactiveMongoPersistence {
               case "soon" => {
                 sortPrams = sortPrams add BSONDocument(
                   "start_time" -> 1)
+                matchPrams = matchPrams add BSONDocument("start_time" ->
+      				  BSONDocument("$gte" -> System.currentTimeMillis().toString()))
                 val javaScriptQuerie = "this.start_time > " + 
                 		System.currentTimeMillis().toString() +
                 		"this.location.distance / 10 / 6371000 / 1000" //@ TODO 10m/s to rad/mms
@@ -193,7 +201,6 @@ trait Mongo extends ReactiveMongoPersistence {
                 //    "$where" ->  javaScriptQuerie)
               }
               case "-soon" => sortPrams = sortPrams add BSONDocument(
-                  "location.distance" -> -1,
                   "start_time" -> -1)
               case _ => sortPrams = sortPrams add BSONDocument(sPram -> 1)
             }
