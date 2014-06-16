@@ -129,7 +129,25 @@ trait Mongo extends ReactiveMongoPersistence {
         }
         case None => None
       }
-
+     val soonProjet = BSONDocument("$project" ->
+    		 BSONDocument("_id" -> 1,
+    		     "sources" -> 1,
+    		     "title" -> 1,
+    		     "desc" -> 1,
+    		     "cover" -> 1,
+    		     "categories" -> 1,
+    		     "tags" -> 1,
+    		     "start_time" -> 1,
+    		     "end_time" -> 1,
+    		     "venues" -> 1,
+    		     "location" -> 1,
+    		     "tickets" -> 1,
+    		     "heat" -> 1,
+    		     "related" -> 1,
+    		     "travel_time" ->
+    		     	BSONDocument("$divide" -> BSONArray("$location.distance", 3)),
+    		     "explicit" -> 1,
+    		     "version" -> 1))
       /*
        * Full text search index requerd for full text search to work
        * db.emails.ensureIndex({tags: "text", subject: "text", "body": "text"}, {
@@ -184,6 +202,19 @@ trait Mongo extends ReactiveMongoPersistence {
       					BSONDocument("$and" -> matchPrams))
         case _ => None
       }
+     
+     /*
+      *{
+            $project : {
+                _id: 1,
+                location: 1,
+                title: 1,
+                start_time: 1,
+                travel_time: {$divide: ['$location.distance', 3]}
+                }
+        }
+      */
+     
       sort match {
         case Some(rawSort) => {
           val sortPramsSplit = rawSort.split(":")
@@ -191,10 +222,9 @@ trait Mongo extends ReactiveMongoPersistence {
             sPram match {
               case sPram if(sPram.head == '-') => sortPrams = sortPrams add BSONDocument(sPram.substring(1) -> -1)
               case "soon" => {
+                parameters = parameters add soonProjet
                 sortPrams = sortPrams add BSONDocument(
-                  "start_time" -> 1)
-                sortPrams = sortPrams add BSONDocument(
-                  "location.distance" -> 1)                
+                  "travel_time" -> 1)             
                 val javaScriptQuerie = "this.start_time > " + 
                 		System.currentTimeMillis().toString() +
                 		"this.location.distance / 10 / 6371000 / 1000" //@ TODO 10m/s to rad/mms
