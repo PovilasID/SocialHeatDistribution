@@ -124,6 +124,7 @@ trait Mongo extends ReactiveMongoPersistence {
                     "distanceField" -> "location.distance",
                     "maxDistance" -> maxDist,
                     "spherical"-> true,
+                    "distanceMultiplier" -> 6371000,
                     "uniqueDocs" -> true))
         }
         case None => None
@@ -192,8 +193,8 @@ trait Mongo extends ReactiveMongoPersistence {
               case "soon" => {
                 sortPrams = sortPrams add BSONDocument(
                   "start_time" -> 1)
-                matchPrams = matchPrams add BSONDocument("start_time" ->
-      				  BSONDocument("$gte" -> System.currentTimeMillis().toString()))
+                sortPrams = sortPrams add BSONDocument(
+                  "location.distance" -> 1)                
                 val javaScriptQuerie = "this.start_time > " + 
                 		System.currentTimeMillis().toString() +
                 		"this.location.distance / 10 / 6371000 / 1000" //@ TODO 10m/s to rad/mms
