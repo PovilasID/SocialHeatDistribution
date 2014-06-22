@@ -148,6 +148,8 @@ trait Mongo extends ReactiveMongoPersistence {
     		     	BSONDocument("$divide" -> BSONArray("$location.distance", 3)),
     		     "explicit" -> 1,
     		     "version" -> 1))
+
+
       /*
        * Full text search index requerd for full text search to work
        * db.emails.ensureIndex({tags: "text", subject: "text", "body": "text"}, {
