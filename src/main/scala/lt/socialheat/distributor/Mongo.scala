@@ -188,7 +188,40 @@ trait Mongo extends ReactiveMongoPersistence {
         //     { $sort: { score: { $meta: "textScore" } } },
         case None => None
       }
-      //var soon = None
+      var soon = false
+      
+       sort match {
+        case Some(rawSort) => {
+          val sortPramsSplit = rawSort.split(":")
+          for(sPram <- sortPramsSplit){
+            sPram match {
+              case sPram if(sPram.head == '-') => sortPrams = sortPrams add BSONDocument(sPram.substring(1) -> -1)
+              case "soon" => {
+                parameters = parameters add soonProjet
+                sortPrams = sortPrams add BSONDocument(
+                  "travel_time" -> 1)
+                soon = true
+                val javaScriptQuerie = "this.start_time > " + 
+                		System.currentTimeMillis().toString() +
+                		"this.location.distance / 10 / 6371000 / 1000" //@ TODO 10m/s to rad/mms
+                //parameters = parameters add BSONDocument(
+                //    "$where" ->  javaScriptQuerie)
+              }
+              case "-soon" => sortPrams = sortPrams add BSONDocument(
+                  "start_time" -> -1)
+              case _ => sortPrams = sortPrams add BSONDocument(sPram -> 1)
+            }
+          }
+          parameters = parameters add BSONDocument("$sort" -> sortPrams)
+        }
+        case None => None
+      }
+      soon match {
+        case soon if soon == true => matchPrams = matchPrams add BSONDocument("heat" ->
+      				  BSONDocument("$gt" -> 0))
+        case false => None
+      }
+      
       
      (q, categories, tags, start_time, end_time, explicit, explicitVenues) match {
         case (q, categories, tags, start_time, end_time, explicit, explicitVenues) 
@@ -215,33 +248,8 @@ trait Mongo extends ReactiveMongoPersistence {
                 travel_time: {$divide: ['$location.distance', 3]}
                 }
         }
-      */
-     
-      sort match {
-        case Some(rawSort) => {
-          val sortPramsSplit = rawSort.split(":")
-          for(sPram <- sortPramsSplit){
-            sPram match {
-              case sPram if(sPram.head == '-') => sortPrams = sortPrams add BSONDocument(sPram.substring(1) -> -1)
-              case "soon" => {
-                parameters = parameters add soonProjet
-                sortPrams = sortPrams add BSONDocument(
-                  "travel_time" -> 1)             
-                val javaScriptQuerie = "this.start_time > " + 
-                		System.currentTimeMillis().toString() +
-                		"this.location.distance / 10 / 6371000 / 1000" //@ TODO 10m/s to rad/mms
-                //parameters = parameters add BSONDocument(
-                //    "$where" ->  javaScriptQuerie)
-              }
-              case "-soon" => sortPrams = sortPrams add BSONDocument(
-                  "start_time" -> -1)
-              case _ => sortPrams = sortPrams add BSONDocument(sPram -> 1)
-            }
-          }
-          parameters = parameters add BSONDocument("$sort" -> sortPrams)
-        }
-        case None => None
-      }
+      */     
+
       parameters = parameters add BSONDocument("$limit" -> (limit + offset))
       parameters = parameters add BSONDocument("$skip" -> offset)
       log.info(BSONArray.pretty(parameters))
