@@ -49,6 +49,11 @@ lazy val myRoute =
         putSEventRoute
       }
     } ~
+    path("caategories"){
+      get{
+        getSCategoryRoute
+      }
+    }~
     path("trigger"){
       get{
         getTriggerFB
@@ -80,6 +85,21 @@ lazy val myRoute =
           "Succes"
         }
       }
+ 
+  protected lazy val getSCategoryRoute = 
+      parameter('offset ? 0, 'limit ? 0){
+        (offset, limit) =>
+          validate(offset >= 0, "query parameter 'offset' must be >= 0")
+          validate(limit >= 0, "query parameter 'limit' must be >= 0") {
+            complete{
+              //val sCategoryDal = new sCategoryDal
+              //val sCategories = sCategoryDal.findSCategories(offset, limit)
+              //sCategories
+              "Success"
+              // @ TODO add categories handler
+            }
+          }
+  		}
   protected lazy val getSEventRoute =
     parameter(
         'q ?,

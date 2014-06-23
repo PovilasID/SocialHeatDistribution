@@ -1,4 +1,4 @@
-package lt.socialheat.distributor
+/*package lt.socialheat.distributor
 
 import scala.concurrent.duration._
 import akka.pattern.ask
@@ -175,3 +175,4 @@ object FbGet extends App {
     //sys.exit()
   }
 }
+*/

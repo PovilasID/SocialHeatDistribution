@@ -146,6 +146,9 @@ trait Mongo extends ReactiveMongoPersistence {
     		     "related" -> 1,
     		     "travel_time" ->
     		     	BSONDocument("$divide" -> BSONArray("$location.distance", 3)),
+    		     "arrival_time" ->
+    		     	BSONDocument("$add" -> BSONArray(BSONDocument("$divide" -> 
+    		     		BSONArray("$location.distance", 3)), "$start_time")),
     		     "explicit" -> 1,
     		     "version" -> 1))
 
@@ -180,12 +183,23 @@ trait Mongo extends ReactiveMongoPersistence {
       				  BSONDocument("$lt" -> end_time))
       	case None => None
       }
-      
+      /*
+       * db.events.ensureIndex(
+                           {
+                             title: "text",
+                             desc: "text",
+                             categories: "text",
+                             tags: "text"
+                           }
+                         )
+       */
       q match {
-        case Some(keyword) => matchPrams = matchPrams add BSONDocument("$text" ->
+        case Some(keyword) => {
+          matchPrams = matchPrams add BSONDocument("$text" ->
         		BSONDocument("$search" -> keyword))
-        // @ Monogo add sorting on textScore
-        //     { $sort: { score: { $meta: "textScore" } } },
+          sortPrams = sortPrams add BSONDocument("score" -> 
+          		BSONDocument("$meta" -> "textScore"))
+          }
         case None => None
       }
       var soon = false
@@ -199,16 +213,15 @@ trait Mongo extends ReactiveMongoPersistence {
               case "soon" => {
                 parameters = parameters add soonProjet
                 sortPrams = sortPrams add BSONDocument(
-                  "travel_time" -> 1)
+                  "arrival_time" -> 1)
                 soon = true
-                val javaScriptQuerie = "this.start_time > " + 
-                		System.currentTimeMillis().toString() +
-                		"this.location.distance / 10 / 6371000 / 1000" //@ TODO 10m/s to rad/mms
-                //parameters = parameters add BSONDocument(
-                //    "$where" ->  javaScriptQuerie)
               }
-              case "-soon" => sortPrams = sortPrams add BSONDocument(
-                  "start_time" -> -1)
+              case "-soon" => {
+                parameters = parameters add soonProjet
+                sortPrams = sortPrams add BSONDocument(
+                  "travel_time" -> -1)
+                soon = true
+              }
               case _ => sortPrams = sortPrams add BSONDocument(sPram -> 1)
             }
           }
@@ -238,17 +251,6 @@ trait Mongo extends ReactiveMongoPersistence {
         case _ => None
       }
      
-     /*
-      *{
-            $project : {
-                _id: 1,
-                location: 1,
-                title: 1,
-                start_time: 1,
-                travel_time: {$divide: ['$location.distance', 3]}
-                }
-        }
-      */     
 
       parameters = parameters add BSONDocument("$limit" -> (limit + offset))
       parameters = parameters add BSONDocument("$skip" -> offset)

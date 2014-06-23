@@ -68,14 +68,11 @@ case class SEvent(
     categories:	Option[List[String]] = None,
     tags:		Option[List[String]] = None,
     heat:		Option[Int] = None,
-    facebook:	Option[String] = None,
-    lastfm:		Option[String] = None,
-    eventbrite:	Option[String] = None,
-    foursquare:	Option[String] = None,
     sources:	Option[SSource] = None,
     venues:		Option[List[SVenue]] = None,
     location:	Option[GeoJson] = None,
     travel_time:Option[Double] = None,
+    arrival_time:Option[Double] = None,
     tickets:	Option[List[String]] = None,
     related:	Option[List[List[String]]] = None,
     explicit:	Option[Boolean] = Some(false),
@@ -99,7 +96,7 @@ object SEvent extends ModelCompanion[SEvent, String] with SprayJsonTypeMapper {
   implicit val sVHoursJsonFormat = jsonFormat2(SVHours.apply _)
   implicit val sVenueJsonFormat = jsonFormat9(SVenue.apply _) 
   implicit val sSourceJsonFormat = jsonFormat7(SSource.apply _)
-  implicit val sEventJsonFormat = jsonFormat22(SEvent.apply _)
+  implicit val sEventJsonFormat = jsonFormat19(SEvent.apply _)
   /*implicit val geoJsonHandler = Macros.handler[GeoJson]
   implicit val sVHoursHandler = Macros.handler[SVHours]
   implicit val sVenueHandler = Macros.handler[SVenue]
