@@ -36,12 +36,12 @@ trait Mongo extends ReactiveMongoPersistence {
   import Akka.actorSystem
   
   private val driver = new MongoDriver(actorSystem)
-  private val dbName = "sprayreactivemongodbexample"
+  private val dbName = "socialheat"
   private val userName = "event-user"
   private val password = "socialheat"
   private val credentials = Authenticate(dbName, userName, password)
   private val connection = driver.connection(List("193.219.158.39"), List(credentials))
-  private val db = connection("sprayreactivemongodbexample")
+  private val db = connection("socialheat")
 
 
   // Json mapping to / from BSON - in this case we want "_id" from BSON to be
@@ -281,6 +281,11 @@ trait Mongo extends ReactiveMongoPersistence {
     def checkUser(name:String, pass:String)(implicit ec: ExecutionContext)= 
       find(BSONDocument("name" -> name, "pass" -> pass))
   }*/
+  
+  object SCategories extends UnsecuredDAO[SCategory]("categories") with UUIDStringId {
+    def findAllCategories()(implicit ec: ExecutionContext)= 
+      find(BSONDocument())
+  }
   object SEvents extends UnsecuredDAO[SEvent]("events") with UUIDStringId {
     def findEvents(categories: Option[String],
         explicit: Boolean,

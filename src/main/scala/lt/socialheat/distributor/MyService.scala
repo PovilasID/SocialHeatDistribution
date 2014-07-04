@@ -19,7 +19,9 @@ import spray.routing.Directive.pimpApply
 import spray.routing.directives.DetachMagnet.fromUnit
 import spray.routing.directives.ParamDefMagnet.apply
 import Mongo.SEvents
+import Mongo.SCategories
 import models.SEvent
+import lt.socialheat.distributor.models.SCategory
 
 
 class MyServiceActor extends Actor with MyService {
@@ -49,7 +51,7 @@ lazy val myRoute =
         putSEventRoute
       }
     } ~
-    path("caategories"){
+    path("categories"){
       get{
         getSCategoryRoute
       }
@@ -95,7 +97,7 @@ lazy val myRoute =
               //val sCategoryDal = new sCategoryDal
               //val sCategories = sCategoryDal.findSCategories(offset, limit)
               //sCategories
-              "Success"
+              SCategories.findAllCategories()
               // @ TODO add categories handler
             }
           }
