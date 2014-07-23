@@ -286,7 +286,7 @@ trait Mongo extends ReactiveMongoPersistence {
     def findAllCategories()(implicit ec: ExecutionContext)= 
       find(BSONDocument())
   }
-  object SEvents extends UnsecuredDAO[SEvent]("events") with UUIDStringId {
+  object SEvents extends UnsecuredDAO[SEvent]("distevents") with UUIDStringId {
     def findEvents(categories: Option[String],
         explicit: Boolean,
         tags: Option[String],

@@ -49,23 +49,13 @@ case class SVenue(
     title:			Option[String] = None,
     phones:			Option[List[String]] = None,
     webites:		Option[List[String]] = None,
-    country:		Option[String] = None,
-    city:			Option[String] = None,
-    street:			Option[String] = None,
-    zip:			Option[String] = None,
     working_hours:	Option[SVHours] = None,
     explicit:		Option[Boolean] = Some(false))
 case class SSource(
-    facebook:	Option[String] = None,
-    lastfm:		Option[String] = None,
-    eventbrite:	Option[String] = None,
-    foursquare:	Option[String] = None,
-    bandsintown:Option[String] = None,
-    meetup:		Option[String] = None,
-    other:		Option[List[Option[List[String]]]])
+    id:		Option[String] = None,
+    name:	Option[String] = None)
 case class SEvent(
     var id: 	Option[String] = None,
-    nid: 		Option[Int] = None,
     title: 		Option[String] = None,
     desc: 		Option[String] = None,
     cover:		Option[String] = None,
@@ -74,8 +64,8 @@ case class SEvent(
     categories:	Option[List[String]] = None,
     tags:		Option[List[String]] = None,
     heat:		Option[Int] = None,
-    sources:	Option[SSource] = None,
-    venues:		Option[List[SVenue]] = None,
+    sources:	Option[List[SSource]] = None,
+    venue:		Option[SVenue] = None,
     location:	Option[SLocation] = None,
     travel_time:Option[Double] = None,
     arrival_time:Option[Double] = None,
@@ -100,10 +90,10 @@ object SEvent extends ModelCompanion[SEvent, String] with SprayJsonTypeMapper {
   import sprest.Formats._
   implicit val geoJsonJsonFormat = jsonFormat3(GeoJson.apply _)
   implicit val sVHoursJsonFormat = jsonFormat2(SVHours.apply _)
-  implicit val sVenueJsonFormat = jsonFormat9(SVenue.apply _) 
-  implicit val sSourceJsonFormat = jsonFormat7(SSource.apply _)
+  implicit val sVenueJsonFormat = jsonFormat5(SVenue.apply _) 
+  implicit val sSourceJsonFormat = jsonFormat2(SSource.apply _)
   implicit val sLocationJsonFormat = jsonFormat5(SLocation.apply _)
-  implicit val sEventJsonFormat = jsonFormat19(SEvent.apply _)
+  implicit val sEventJsonFormat = jsonFormat18(SEvent.apply _)
   /*implicit val geoJsonHandler = Macros.handler[GeoJson]
   implicit val sVHoursHandler = Macros.handler[SVHours]
   implicit val sVenueHandler = Macros.handler[SVenue]
