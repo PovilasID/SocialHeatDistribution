@@ -22,15 +22,24 @@ import Mongo.SEvents
 import Mongo.SCategories
 import models.SEvent
 import lt.socialheat.distributor.models.SCategory
+import spray.routing.Directive
+import spray.routing.directives.BasicDirectives._
 
 
 class MyServiceActor extends Actor with MyService {
+  def CURRENT_VER = 1
   def actorRefFactory = context
   def receive = runRoute(myRoute)
 }
 
 trait MyService extends HttpService {
 
+  
+/*val version = optionalHeaderValueByName("X-API-Version") { version =>
+  version match	{
+    case ver if ver == CURRENT_ => 
+  }
+}*/
 lazy val myRoute =
     path("person") {
       put {
@@ -105,6 +114,7 @@ lazy val myRoute =
   protected lazy val getSEventRoute =
     parameter(
         'q ?,
+        'ids ?, //@ TODO add return list of events
         'categories ?,			//Filtering
         'explicit ? false, //skip that shit
         'explicitVenues.as[Boolean] ?,
@@ -118,7 +128,7 @@ lazy val myRoute =
         'limit ? 10,
         'offset ? 0
         ) { 
-    (q, categories, explicit, explicitVenues, tags, skip, start_time, end_time, location, sort, locale, limit, offset) =>
+    (q, ids, categories, explicit, explicitVenues, tags, skip, start_time, end_time, location, sort, locale, limit, offset) =>
       detach() {
         complete {
           /*SEvents.findEvents(categories,
@@ -132,7 +142,7 @@ lazy val myRoute =
               limit,
               offset)*/
           
-          var events = SEvents.findLimitedEvent(q, categories, Some(explicit), explicitVenues, tags, skip, start_time, end_time, location, sort, limit, offset)
+          var events = SEvents.findLimitedEvent(q, ids, categories, Some(explicit), explicitVenues, tags, skip, start_time, end_time, location, sort, limit, offset)
           events
         }
       }

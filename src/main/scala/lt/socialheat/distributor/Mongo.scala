@@ -99,6 +99,7 @@ trait Mongo extends ReactiveMongoPersistence {
     def findLimitedEvent(
         //userId: Option[String],
         q: Option[String],
+        ids: Option[String],
         categories: Option[String],
         explicit: Option[Boolean],
         explicitVenues: Option[Boolean],
@@ -165,6 +166,7 @@ trait Mongo extends ReactiveMongoPersistence {
        *  })
        */
       matchPrams = mongoMultiMatcher(matchPrams, tags, "tags")
+      matchPrams = mongoMultiMatcher(matchPrams, ids, "_id")
       matchPrams = mongoMultiMatcher(matchPrams, categories, "categories")
       matchPrams = mongoFalseFilter(matchPrams, explicit, "explicit")
       matchPrams = mongoFalseFilter(matchPrams, explicitVenues, "venues.explicit")
