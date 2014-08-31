@@ -96,6 +96,31 @@ trait Mongo extends ReactiveMongoPersistence {
       newParmeter
     }
     
+    def findTags(limit: Int, offset: Int)(implicit ec: ExecutionContext) = {
+      var parameters = BSONArray()
+      
+      parameters = parameters add BSONDocument("$unwind" -> "$tags")
+      
+      parameters = parameters add BSONDocument("$group" -> BSONDocument(
+    		  									"_id" -> "$tags",
+    		  									"count" -> BSONDocument(
+    		  									    "$sum" -> 1)))
+      parameters = parameters add BSONDocument("$sort" -> BSONDocument(
+    		  									"count" -> -1))
+      
+      parameters = parameters add BSONDocument("$limit" -> (limit + offset))
+      parameters = parameters add BSONDocument("$skip" -> offset)
+      log.info(BSONArray.pretty(parameters))
+      val data = db.command(RawCommand(
+        BSONDocument(
+            "aggregate" -> collName,
+            "pipeline" -> parameters
+        ))
+      ).map { doc => doc.getAs[List[M]]("result") }
+      
+      data
+    }
+    
     def findLimitedEvent(
         //userId: Option[String],
         q: Option[String],

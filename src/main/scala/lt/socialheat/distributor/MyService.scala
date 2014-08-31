@@ -65,6 +65,11 @@ lazy val myRoute =
         getSCategoryRoute
       }
     }~
+    path("tags"){
+      get{
+        getTagsRoute
+      }
+    }~
     path("trigger"){
       get{
         getTriggerFB
@@ -107,6 +112,20 @@ lazy val myRoute =
               //val sCategories = sCategoryDal.findSCategories(offset, limit)
               //sCategories
               SCategories.findAllCategories()
+              // @ TODO add categories handler
+            }
+          }
+  		}
+    protected lazy val getTagsRoute = 
+      parameter('offset ? 0, 'limit ? 10){
+        (offset, limit) =>
+          validate(offset >= 0, "query parameter 'offset' must be >= 0")
+          validate(limit >= 0, "query parameter 'limit' must be >= 0") {
+            complete{
+              //val sCategoryDal = new sCategoryDal
+              //val sCategories = sCategoryDal.findSCategories(offset, limit)
+              //sCategories
+              SEvents.findTags(limit, offset)
               // @ TODO add categories handler
             }
           }
