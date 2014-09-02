@@ -146,7 +146,7 @@ trait Mongo extends ReactiveMongoPersistence {
           val maxDist = locationSplit match {case dist if locationSplit.length > 2 => dist(2).toDouble case _ => 0}
           parameters = parameters add BSONDocument(
         		"$geoNear" -> BSONDocument(
-                    "near" -> BSONArray(locationSplit(0).toDouble,locationSplit(1).toDouble),
+                    "near" -> BSONArray(locationSplit(1).toDouble,locationSplit(0).toDouble),
                     "distanceField" -> "location.distance",
                     "maxDistance" -> maxDist,
                     "spherical"-> true,
